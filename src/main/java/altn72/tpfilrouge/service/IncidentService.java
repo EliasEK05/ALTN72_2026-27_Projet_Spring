@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -47,5 +48,9 @@ public class IncidentService {
             return Optional.of(existingIncident);
         }
         return  Optional.empty();
+    }
+
+    public Optional<List<Incident>> getAllIncidents() {
+        return Optional.ofNullable(incidentRepository.findAllByOrderByDateOuvertureDesc());
     }
 }
