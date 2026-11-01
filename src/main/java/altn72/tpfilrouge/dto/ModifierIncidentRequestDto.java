@@ -1,5 +1,6 @@
 package altn72.tpfilrouge.dto;
 
+import altn72.tpfilrouge.modele.StatutIncident;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -17,11 +18,8 @@ public record ModifierIncidentRequestDto(
         @NotNull(message = "La date d'ouverture est obligatoire")
         Instant dateOuverture,
 
-        @NotBlank(message = "Le statut est obligatoire")
-        String statut,
-
-        @NotNull
-        Long station_id,
+        @NotNull(message = "Le statut est obligatoire")
+        StatutIncident statut,
 
         @NotNull
         Long equipement_id,

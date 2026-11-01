@@ -17,15 +17,15 @@ import java.util.Optional;
 public class IncidentService {
     private final IncidentRepository incidentRepository;
     private final EquipementRepository equipementRepository;
-    private final StationRepository stationRepository;
     private final IncidentMapper incidentMapper;
+    private final CalculateurNiveauAttention calculateurNiveauAttention;
     private final Clock clock;
 
-    public IncidentService(IncidentRepository incidentRepository, EquipementRepository equipementRepository, StationRepository stationRepository,  IncidentMapper incidentMapper,  Clock clock) {
+    public IncidentService(IncidentRepository incidentRepository, EquipementRepository equipementRepository,  IncidentMapper incidentMapper,  CalculateurNiveauAttention calculateurNiveauAttention, Clock clock) {
         this.incidentRepository = incidentRepository;
         this.equipementRepository = equipementRepository;
-        this.stationRepository = stationRepository;
         this.incidentMapper = incidentMapper;
+        this.calculateurNiveauAttention = calculateurNiveauAttention;
         this.clock = clock;
     }
 
@@ -34,17 +34,15 @@ public class IncidentService {
         Equipement equipement = equipementRepository.findById(requete.equipementId())
                 .orElseThrow(()->new RuntimeException("Equipement introuvable"));
 
-        Station station = equipement.getStation();
-
-        Incident incident= incidentMapper.declarerIncidentRequestToEntity(requete, equipement, Instant.now(clock), station);
-        return incidentMapper.toIncidentDto(incidentRepository.save(incident));
+        Incident incident= incidentMapper.declarerIncidentRequestToEntity(requete, equipement, Instant.now(clock));
+        return incidentMapper.toIncidentDto(incidentRepository.save(incident), calculateurNiveauAttention.calculerDureeOuverture(incident), calculateurNiveauAttention.calculerNiveauAttention(incident));
     }
 
     public Optional<IncidentDto> getIncidentById(Long id) {
         Incident incident = incidentRepository.findById(id)
                 .orElseThrow(()->new RuntimeException("Incident introuvable"));
 
-        return Optional.of(incidentMapper.toIncidentDto(incident));
+        return Optional.of(incidentMapper.toIncidentDto(incident, calculateurNiveauAttention.calculerDureeOuverture(incident), calculateurNiveauAttention.calculerNiveauAttention(incident)));
     }
 
     @Transactional
@@ -55,18 +53,18 @@ public class IncidentService {
         if (optionalIncident.isPresent()) {
             Incident existingIncident = optionalIncident.get();
 
-            if ("RESOLU".equals(existingIncident.getStatut())) {
+            if (existingIncident.getStatut() == StatutIncident.RESOLU) {
                 return Optional.empty();
             }
 
-            if ("RESOLU".equals(incident.getStatut())) {
+            if (incident.getStatut() == StatutIncident.RESOLU) {
                 incident.setDateResolution(Instant.now());
             }
 
             BeanUtils.copyProperties(incident, existingIncident);
             incidentRepository.save(existingIncident);
 
-            return Optional.of(incidentMapper.toIncidentDto(existingIncident));
+            return Optional.of(incidentMapper.toIncidentDto(existingIncident, calculateurNiveauAttention.calculerDureeOuverture(incident), calculateurNiveauAttention.calculerNiveauAttention(incident)));
         }
         return  Optional.empty();
     }
@@ -74,8 +72,11 @@ public class IncidentService {
     public Optional<List<IncidentDto>> getAllIncidents() {
         List<IncidentDto> incidents = incidentRepository.findAllByOrderByDateOuvertureDesc()
                 .stream()
-                .map(incidentMapper::toIncidentDto)
-                .toList();
+                .map(i->
+                    (incidentMapper.toIncidentDto(i, calculateurNiveauAttention.calculerDureeOuverture(i), calculateurNiveauAttention.calculerNiveauAttention(i))
+                    )).toList();
         return Optional.of(incidents);
     }
+
+
 }
