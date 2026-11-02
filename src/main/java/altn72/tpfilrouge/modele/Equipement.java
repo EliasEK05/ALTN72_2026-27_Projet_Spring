@@ -11,7 +11,7 @@ public class Equipement {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "reference", nullable = false, length = 50)
+    @Column(name = "reference", nullable = false, unique = true, length = 50)
     private String reference;
 
     @Column(name = "libelle", nullable = false)
