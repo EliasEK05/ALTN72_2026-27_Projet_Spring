@@ -1,6 +1,9 @@
 package altn72.tpfilrouge.controleur;
 
-import altn72.tpfilrouge.modele.Incident;
+import altn72.tpfilrouge.dto.AffecterPrestataireRequestDto;
+import altn72.tpfilrouge.dto.DeclarerIncidentRequestDto;
+import altn72.tpfilrouge.dto.IncidentDto;
+import altn72.tpfilrouge.dto.ModifierDescriptionRequestDto;
 import altn72.tpfilrouge.service.IncidentService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -20,17 +23,19 @@ public class IncidentControleur {
     }
 
     @GetMapping
-    public ResponseEntity<List<Incident>> getAllIncidents() {
-        Optional<List<Incident>> listeIncidents = incidentService.getAllIncidents();
-        if (listeIncidents.isPresent()) {
-            return new ResponseEntity<>(listeIncidents.get(), HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public ResponseEntity<List<IncidentDto>> getAllIncidents() {
+        Optional<List<IncidentDto>> listeIncidents = incidentService.getAllIncidents();
+        return listeIncidents.map(incidentDtos -> new ResponseEntity<>(incidentDtos, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping("/historique")
+    public List<IncidentDto> getHistorique() {
+        return incidentService.getHistoriqueIncidentsResolus();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Incident> getIncidentById(@PathVariable Long id) {
-        Optional<Incident> incident = incidentService.getIncidentById(id);
+    public ResponseEntity<IncidentDto> getIncidentById(@PathVariable Long id) {
+        Optional<IncidentDto> incident = incidentService.getIncidentById(id);
 
         return incident
                 .map(ResponseEntity::ok)
@@ -38,19 +43,25 @@ public class IncidentControleur {
     }
 
     @PostMapping
-    public ResponseEntity<Incident> creerIncident(@Valid @RequestBody Incident incident) {
-        Incident nouveauIncident = incidentService.creerIncident(incident);
+    public ResponseEntity<IncidentDto> creerIncident(@Valid @RequestBody DeclarerIncidentRequestDto incidentDto) {
+        IncidentDto nouveauIncident = incidentService.creerIncident(incidentDto);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(nouveauIncident);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Incident> modifierIncident(@PathVariable Long id, @Valid @RequestBody Incident incident) {
-        Optional<Incident> incidentModifie = incidentService.modifierIncident(id, incident);
+    @PatchMapping("/{id}/description")
+    public IncidentDto modifierDescription(@PathVariable Long id, @Valid @RequestBody ModifierDescriptionRequestDto requete) {
+        return incidentService.modifierDescription(id, requete.description());
+    }
 
-        return incidentModifie
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @PatchMapping("/{id}/affectation")
+    public IncidentDto affecterPrestataire(@PathVariable Long id, @Valid @RequestBody AffecterPrestataireRequestDto requete) {
+        return incidentService.affecterPrestataire(id, requete.prestataireId());
+    }
+
+    @PatchMapping("/{id}/resolution")
+    public IncidentDto resoudre(@PathVariable Long id) {
+        return incidentService.resoudre(id);
     }
 }
