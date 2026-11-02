@@ -4,7 +4,6 @@ import altn72.tpfilrouge.dto.DeclarerIncidentRequestDto;
 import altn72.tpfilrouge.dto.IncidentDto;
 import altn72.tpfilrouge.mapper.IncidentMapper;
 import altn72.tpfilrouge.modele.*;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,13 +16,15 @@ import java.util.Optional;
 public class IncidentService {
     private final IncidentRepository incidentRepository;
     private final EquipementRepository equipementRepository;
+    private final PrestataireRepository prestataireRepository;
     private final IncidentMapper incidentMapper;
     private final CalculateurNiveauAttention calculateurNiveauAttention;
     private final Clock clock;
 
-    public IncidentService(IncidentRepository incidentRepository, EquipementRepository equipementRepository,  IncidentMapper incidentMapper,  CalculateurNiveauAttention calculateurNiveauAttention, Clock clock) {
+    public IncidentService(IncidentRepository incidentRepository, EquipementRepository equipementRepository, PrestataireRepository prestataireRepository, IncidentMapper incidentMapper, CalculateurNiveauAttention calculateurNiveauAttention, Clock clock) {
         this.incidentRepository = incidentRepository;
         this.equipementRepository = equipementRepository;
+        this.prestataireRepository = prestataireRepository;
         this.incidentMapper = incidentMapper;
         this.calculateurNiveauAttention = calculateurNiveauAttention;
         this.clock = clock;
@@ -35,48 +36,76 @@ public class IncidentService {
                 .orElseThrow(()->new RuntimeException("Equipement introuvable"));
 
         Incident incident= incidentMapper.declarerIncidentRequestToEntity(requete, equipement, Instant.now(clock));
-        return incidentMapper.toIncidentDto(incidentRepository.save(incident), calculateurNiveauAttention.calculerDureeOuverture(incident), calculateurNiveauAttention.calculerNiveauAttention(incident));
+        return versDto(incidentRepository.save(incident));
     }
 
+    // Le mapper lit les relations LAZY (station, prestataire, évaluation) : la transaction
+    // garde la session Hibernate ouverte pendant ce chargement.
+    @Transactional
     public Optional<IncidentDto> getIncidentById(Long id) {
-        Incident incident = incidentRepository.findById(id)
-                .orElseThrow(()->new RuntimeException("Incident introuvable"));
-
-        return Optional.of(incidentMapper.toIncidentDto(incident, calculateurNiveauAttention.calculerDureeOuverture(incident), calculateurNiveauAttention.calculerNiveauAttention(incident)));
+        return Optional.of(versDto(trouverIncident(id)));
     }
 
     @Transactional
-    public Optional<IncidentDto> modifierIncident(Long id, Incident incident) {
-        incident.setId(id);
-        Optional<Incident> optionalIncident = incidentRepository.findById(id);
-
-        if (optionalIncident.isPresent()) {
-            Incident existingIncident = optionalIncident.get();
-
-            if (existingIncident.getStatut() == StatutIncident.RESOLU) {
-                return Optional.empty();
-            }
-
-            if (incident.getStatut() == StatutIncident.RESOLU) {
-                incident.setDateResolution(Instant.now());
-            }
-
-            BeanUtils.copyProperties(incident, existingIncident);
-            incidentRepository.save(existingIncident);
-
-            return Optional.of(incidentMapper.toIncidentDto(existingIncident, calculateurNiveauAttention.calculerDureeOuverture(incident), calculateurNiveauAttention.calculerNiveauAttention(incident)));
-        }
-        return  Optional.empty();
-    }
-
     public Optional<List<IncidentDto>> getAllIncidents() {
         List<IncidentDto> incidents = incidentRepository.findAllByOrderByDateOuvertureDesc()
                 .stream()
-                .map(i->
-                    (incidentMapper.toIncidentDto(i, calculateurNiveauAttention.calculerDureeOuverture(i), calculateurNiveauAttention.calculerNiveauAttention(i))
-                    )).toList();
+                .map(this::versDto)
+                .toList();
         return Optional.of(incidents);
     }
 
 
+    @Transactional
+    public IncidentDto modifierDescription(Long incidentId, String description) {
+        Incident incident = trouverIncident(incidentId);
+        verifierNonResolu(incident);
+
+        incident.setDescription(description);
+        return versDto(incident);
+    }
+
+    @Transactional
+    public IncidentDto affecterPrestataire(Long incidentId, Long prestataireId) {
+        Incident incident = trouverIncident(incidentId);
+        verifierNonResolu(incident);
+        Prestataire prestataire = prestataireRepository.findById(prestataireId)
+                .orElseThrow(() -> new RuntimeException("Prestataire introuvable"));
+
+        incident.setPrestataire(prestataire);
+        incident.setStatut(StatutIncident.AFFECTE);
+        return versDto(incident);
+    }
+
+    @Transactional
+    public IncidentDto resoudre(Long incidentId) {
+        Incident incident = trouverIncident(incidentId);
+        verifierNonResolu(incident);
+        Instant dateResolution = Instant.now(clock);
+        if (dateResolution.isBefore(incident.getDateOuverture())) {
+            throw new RuntimeException("La date de résolution ne peut pas précéder la date d'ouverture");
+        }
+
+        incident.setDateResolution(dateResolution);
+        incident.setStatut(StatutIncident.RESOLU);
+        return versDto(incident);
+    }
+
+    private Incident trouverIncident(Long id) {
+        return incidentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Incident introuvable"));
+    }
+
+    private void verifierNonResolu(Incident incident) {
+        if (incident.getStatut() == StatutIncident.RESOLU) {
+            throw new RuntimeException("L'incident est résolu et ne peut plus être modifié");
+        }
+    }
+
+    private IncidentDto versDto(Incident incident) {
+        return incidentMapper.toIncidentDto(
+                incident,
+                calculateurNiveauAttention.calculerDureeOuverture(incident),
+                calculateurNiveauAttention.calculerNiveauAttention(incident));
+    }
 }

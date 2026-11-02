@@ -1,8 +1,9 @@
 package altn72.tpfilrouge.controleur;
 
+import altn72.tpfilrouge.dto.AffecterPrestataireRequestDto;
 import altn72.tpfilrouge.dto.DeclarerIncidentRequestDto;
 import altn72.tpfilrouge.dto.IncidentDto;
-import altn72.tpfilrouge.modele.Incident;
+import altn72.tpfilrouge.dto.ModifierDescriptionRequestDto;
 import altn72.tpfilrouge.service.IncidentService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -44,12 +45,18 @@ public class IncidentControleur {
                 .body(nouveauIncident);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<IncidentDto> modifierIncident(@PathVariable Long id, @Valid @RequestBody Incident incident) {
-        Optional<IncidentDto> incidentModifie = incidentService.modifierIncident(id, incident);
+    @PatchMapping("/{id}/description")
+    public IncidentDto modifierDescription(@PathVariable Long id, @Valid @RequestBody ModifierDescriptionRequestDto requete) {
+        return incidentService.modifierDescription(id, requete.description());
+    }
 
-        return incidentModifie
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @PatchMapping("/{id}/affectation")
+    public IncidentDto affecterPrestataire(@PathVariable Long id, @Valid @RequestBody AffecterPrestataireRequestDto requete) {
+        return incidentService.affecterPrestataire(id, requete.prestataireId());
+    }
+
+    @PatchMapping("/{id}/resolution")
+    public IncidentDto resoudre(@PathVariable Long id) {
+        return incidentService.resoudre(id);
     }
 }

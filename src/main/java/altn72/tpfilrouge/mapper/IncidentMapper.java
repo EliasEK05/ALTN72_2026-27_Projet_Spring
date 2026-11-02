@@ -2,7 +2,6 @@ package altn72.tpfilrouge.mapper;
 
 import altn72.tpfilrouge.dto.DeclarerIncidentRequestDto;
 import altn72.tpfilrouge.dto.IncidentDto;
-import altn72.tpfilrouge.dto.ModifierIncidentRequestDto;
 import altn72.tpfilrouge.modele.*;
 import org.springframework.stereotype.Component;
 
@@ -21,31 +20,27 @@ public class IncidentMapper {
         return incident;
     }
 
-    public IncidentDto toIncidentDto(Incident incident, Duration dateOuverture, NiveauAttention niveauAttention) {
+    public IncidentDto toIncidentDto(Incident incident, Duration dureeOuverture, NiveauAttention niveauAttention) {
+        Equipement equipement = incident.getEquipement();
+        Prestataire prestataire = incident.getPrestataire();
+        Evaluation evaluation = incident.getEvaluation();
+
         return new IncidentDto(
                 incident.getId(),
                 incident.getDescription(),
                 incident.getDateOuverture(),
                 incident.getStatut(),
                 incident.getDateResolution(),
-                incident.getEquipement(),
-                incident.getPrestataire(),
-                incident.getEvaluation(),
-                dateOuverture,
+                equipement.getId(),
+                equipement.getReference(),
+                equipement.getLibelle(),
+                equipement.getStation().getNom(),
+                prestataire != null ? prestataire.getId() : null,
+                prestataire != null ? prestataire.getNom() : null,
+                evaluation != null ? evaluation.getNote() : null,
+                evaluation != null ? evaluation.getCommentaire() : null,
+                dureeOuverture,
                 niveauAttention
         );
-    }
-
-    public Incident modifierIncidentRequesttoEntity(ModifierIncidentRequestDto requete,
-                                                    Equipement equipement,
-                                                    Prestataire prestataire) {
-        Incident incident = new Incident();
-        incident.setDescription(requete.description());
-        incident.setDateOuverture(requete.dateOuverture());
-        incident.setStatut(requete.statut());
-        incident.setDateResolution(requete.dateResolution());
-        incident.setEquipement(equipement);
-        incident.setPrestataire(prestataire);
-        return incident;
     }
 }
