@@ -2,6 +2,10 @@ package altn72.tpfilrouge.service;
 
 import altn72.tpfilrouge.dto.DeclarerIncidentRequestDto;
 import altn72.tpfilrouge.dto.IncidentDto;
+import altn72.tpfilrouge.exception.EquipementIntrouvableException;
+import altn72.tpfilrouge.exception.IncidentIntrouvableException;
+import altn72.tpfilrouge.exception.PrestataireIntrouvableException;
+import altn72.tpfilrouge.exception.TransitionIncidentInterditeException;
 import altn72.tpfilrouge.mapper.IncidentMapper;
 import altn72.tpfilrouge.modele.*;
 import org.springframework.stereotype.Service;
@@ -10,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class IncidentService {
@@ -33,24 +36,23 @@ public class IncidentService {
     @Transactional
     public IncidentDto creerIncident(DeclarerIncidentRequestDto requete) {
         Equipement equipement = equipementRepository.findById(requete.equipementId())
-                .orElseThrow(()->new RuntimeException("Equipement introuvable"));
+                .orElseThrow(() -> new EquipementIntrouvableException(requete.equipementId()));
 
         Incident incident= incidentMapper.declarerIncidentRequestToEntity(requete, equipement, Instant.now(clock));
         return versDto(incidentRepository.save(incident));
     }
 
     @Transactional
-    public Optional<IncidentDto> getIncidentById(Long id) {
-        return Optional.of(versDto(trouverIncident(id)));
+    public IncidentDto getIncidentById(Long id) {
+        return versDto(trouverIncident(id));
     }
 
     @Transactional
-    public Optional<List<IncidentDto>> getAllIncidents() {
-        List<IncidentDto> incidents = incidentRepository.findAllByOrderByDateOuvertureDesc()
+    public List<IncidentDto> getAllIncidents() {
+        return incidentRepository.findAllByOrderByDateOuvertureDesc()
                 .stream()
                 .map(this::versDto)
                 .toList();
-        return Optional.of(incidents);
     }
 
     @Transactional
@@ -76,7 +78,7 @@ public class IncidentService {
         Incident incident = trouverIncident(incidentId);
         verifierNonResolu(incident);
         Prestataire prestataire = prestataireRepository.findById(prestataireId)
-                .orElseThrow(() -> new RuntimeException("Prestataire introuvable"));
+                .orElseThrow(() -> new PrestataireIntrouvableException(prestataireId));
 
         incident.setPrestataire(prestataire);
         incident.setStatut(StatutIncident.AFFECTE);
@@ -89,7 +91,7 @@ public class IncidentService {
         verifierNonResolu(incident);
         Instant dateResolution = Instant.now(clock);
         if (dateResolution.isBefore(incident.getDateOuverture())) {
-            throw new RuntimeException("La date de résolution ne peut pas précéder la date d'ouverture");
+            throw new TransitionIncidentInterditeException("La date de résolution ne peut pas précéder la date d'ouverture");
         }
 
         incident.setDateResolution(dateResolution);
@@ -99,12 +101,12 @@ public class IncidentService {
 
     private Incident trouverIncident(Long id) {
         return incidentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Incident introuvable"));
+                .orElseThrow(() -> new IncidentIntrouvableException(id));
     }
 
     private void verifierNonResolu(Incident incident) {
         if (incident.getStatut() == StatutIncident.RESOLU) {
-            throw new RuntimeException("L'incident est résolu et ne peut plus être modifié");
+            throw new TransitionIncidentInterditeException("L'incident n°" + incident.getId() + " est résolu et ne peut plus être modifié");
         }
     }
 

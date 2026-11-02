@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/incident")
@@ -23,9 +22,8 @@ public class IncidentControleur {
     }
 
     @GetMapping
-    public ResponseEntity<List<IncidentDto>> getAllIncidents() {
-        Optional<List<IncidentDto>> listeIncidents = incidentService.getAllIncidents();
-        return listeIncidents.map(incidentDtos -> new ResponseEntity<>(incidentDtos, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public List<IncidentDto> getAllIncidents() {
+        return incidentService.getAllIncidents();
     }
 
     @GetMapping("/historique")
@@ -34,12 +32,8 @@ public class IncidentControleur {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<IncidentDto> getIncidentById(@PathVariable Long id) {
-        Optional<IncidentDto> incident = incidentService.getIncidentById(id);
-
-        return incident
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public IncidentDto getIncidentById(@PathVariable Long id) {
+        return incidentService.getIncidentById(id);
     }
 
     @PostMapping
