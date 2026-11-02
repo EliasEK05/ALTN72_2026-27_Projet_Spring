@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class EquipementControleur {
-    //Injection de dépendance via constructeur
     private final EquipementService equipementService;
+
     public EquipementControleur(EquipementService equipementService) {
         this.equipementService = equipementService;
     }
