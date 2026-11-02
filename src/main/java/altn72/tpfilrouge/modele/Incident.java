@@ -12,6 +12,7 @@ import java.time.Instant;
 @Table(name = "incident")
 public class Incident {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
@@ -24,9 +25,10 @@ public class Incident {
     @Column(name = "date_ouverture", nullable = false)
     private Instant dateOuverture;
 
-    @NotBlank(message = "Le statut est obligatoire")
+    @NotNull(message = "Le statut est obligatoire")
+    @Enumerated(EnumType.STRING)
     @Column(name = "statut", nullable = false, length = 50)
-    private String statut;
+    private StatutIncident statut;
 
     @Column(name = "date_resolution")
     private Instant dateResolution;
@@ -42,15 +44,7 @@ public class Incident {
     @JoinColumn(name = "prestataire_id")
     private Prestataire prestataire;
 
-    @NotNull(message = "Une station est obligatoire")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "station_id")
-    private Station station;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "evaluation_id")
+    @OneToOne(mappedBy = "incident", fetch = FetchType.LAZY)
     private Evaluation evaluation;
 
     public Long getId() {
@@ -77,11 +71,11 @@ public class Incident {
         this.dateOuverture = dateOuverture;
     }
 
-    public String getStatut() {
+    public StatutIncident getStatut() {
         return statut;
     }
 
-    public void setStatut(String statut) {
+    public void setStatut(StatutIncident statut) {
         this.statut = statut;
     }
 
@@ -107,14 +101,6 @@ public class Incident {
 
     public void setPrestataire(Prestataire prestataire) {
         this.prestataire = prestataire;
-    }
-
-    public Station getStation() {
-        return station;
-    }
-
-    public void setStation(Station station) {
-        this.station = station;
     }
 
     public Evaluation getEvaluation() {

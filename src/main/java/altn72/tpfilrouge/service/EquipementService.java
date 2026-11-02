@@ -2,10 +2,9 @@ package altn72.tpfilrouge.service;
 
 import altn72.tpfilrouge.dto.FicheEquipement;
 import altn72.tpfilrouge.dto.IncidentDto;
-import altn72.tpfilrouge.mapper.IncidentMapper;
+import altn72.tpfilrouge.exception.EquipementIntrouvableException;
 import altn72.tpfilrouge.modele.Equipement;
 import altn72.tpfilrouge.modele.EquipementRepository;
-import altn72.tpfilrouge.modele.IncidentRepository;
 import altn72.tpfilrouge.modele.StationRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,15 +17,13 @@ public class EquipementService {
     //Injection de dépendance via constructeur
     private final EquipementRepository equipementRepository;
     private final StationRepository stationRepository;
-    private final IncidentRepository incidentRepository;
-    private final IncidentMapper incidentMapper;
+    private final IncidentService incidentService;
 
     public EquipementService(EquipementRepository equipementRepository, StationRepository stationRepository,
-                             IncidentRepository incidentRepository, IncidentMapper incidentMapper) {
+                             IncidentService incidentService) {
         this.equipementRepository = equipementRepository;
         this.stationRepository = stationRepository;
-        this.incidentRepository = incidentRepository;
-        this.incidentMapper = incidentMapper;
+        this.incidentService = incidentService;
     }
 
     // F2 Récupère les équipements d'une station donnée
@@ -40,12 +37,9 @@ public class EquipementService {
     // F3 Récupère la fiche d'un équipement avec ses incidents
     public FicheEquipement getFicheEquipement(Long equipementId) {
         Equipement equipement = equipementRepository.findById(equipementId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Equipement " + equipementId + " introuvable"));
+                .orElseThrow(() -> new EquipementIntrouvableException(equipementId));
 
-        List<IncidentDto> incidents = incidentRepository.findByEquipementIdOrderByDateOuvertureDesc(equipementId)
-                .stream()
-                .map(incidentMapper::toIncidentDto)
-                .toList();
+        List<IncidentDto> incidents = incidentService.getIncidentsByEquipement(equipementId);
 
         return new FicheEquipement(equipement.getId(), equipement.getReference(), equipement.getLibelle(),
                                    equipement.getType(), equipement.getEtatFonctionnement(), incidents);

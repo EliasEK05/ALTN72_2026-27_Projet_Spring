@@ -1,9 +1,10 @@
 package altn72.tpfilrouge.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import altn72.tpfilrouge.modele.NiveauAttention;
+import altn72.tpfilrouge.modele.StatutIncident;
 
 import java.io.Serializable;
+import java.time.Duration;
 import java.time.Instant;
 
 /**
@@ -11,12 +12,19 @@ import java.time.Instant;
  */
 public record IncidentDto(
         Long id,
-        @NotBlank(message = "La description est obligatoire")
         String description,
-        @NotNull(message = "La date d'ouverture est obligatoire")
         Instant dateOuverture,
-        @NotBlank(message = "Le statut est obligatoire")
-        String statut,
-        Instant dateResolution)
-        implements Serializable {
+        StatutIncident statut,
+        Instant dateResolution,
+        Long equipementId,
+        String equipementReference,
+        String equipementLibelle,
+        String stationNom,
+        Long prestataireId,
+        String prestataireNom,
+        Integer note,
+        String commentaireEvaluation,
+        Duration dureeOuverture,
+        NiveauAttention niveauAttention
+    ) implements Serializable {
 }

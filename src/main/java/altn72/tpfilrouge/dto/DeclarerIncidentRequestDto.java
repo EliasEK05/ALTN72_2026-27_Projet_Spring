@@ -13,5 +13,7 @@ public record DeclarerIncidentRequestDto(
         Long equipementId,
 
         @NotBlank(message = "La description est obligatoire")
-        String description) implements Serializable {
+        String description
+
+    ) implements Serializable {
 }
