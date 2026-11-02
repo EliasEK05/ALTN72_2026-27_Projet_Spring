@@ -39,8 +39,6 @@ public class IncidentService {
         return versDto(incidentRepository.save(incident));
     }
 
-    // Le mapper lit les relations LAZY (station, prestataire, évaluation) : la transaction
-    // garde la session Hibernate ouverte pendant ce chargement.
     @Transactional
     public Optional<IncidentDto> getIncidentById(Long id) {
         return Optional.of(versDto(trouverIncident(id)));
@@ -53,6 +51,14 @@ public class IncidentService {
                 .map(this::versDto)
                 .toList();
         return Optional.of(incidents);
+    }
+
+    @Transactional
+    public List<IncidentDto> getHistoriqueIncidentsResolus() {
+        return incidentRepository.findByStatutOrderByDateResolutionDesc(StatutIncident.RESOLU)
+                .stream()
+                .map(this::versDto)
+                .toList();
     }
 
 

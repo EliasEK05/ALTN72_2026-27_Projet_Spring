@@ -28,6 +28,11 @@ public class IncidentControleur {
         return listeIncidents.map(incidentDtos -> new ResponseEntity<>(incidentDtos, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
+    @GetMapping("/historique")
+    public List<IncidentDto> getHistorique() {
+        return incidentService.getHistoriqueIncidentsResolus();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<IncidentDto> getIncidentById(@PathVariable Long id) {
         Optional<IncidentDto> incident = incidentService.getIncidentById(id);

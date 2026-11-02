@@ -9,8 +9,6 @@ import java.time.Instant;
 
 /**
  * DTO for {@link altn72.tpfilrouge.modele.Incident}
- * Les relations sont aplaties en champs simples : renvoyer les entités JPA provoquerait
- * une boucle infinie à la sérialisation JSON (Evaluation -> Incident -> Evaluation).
  */
 public record IncidentDto(
         Long id,
