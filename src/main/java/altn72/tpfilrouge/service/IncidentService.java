@@ -55,6 +55,15 @@ public class IncidentService {
                 .toList();
     }
 
+    // F3 Incidents d'un équipement, du plus récent au plus ancien
+    @Transactional
+    public List<IncidentDto> getIncidentsByEquipement(Long equipementId) {
+        return incidentRepository.findByEquipementIdOrderByDateOuvertureDesc(equipementId)
+                .stream()
+                .map(this::versDto)
+                .toList();
+    }
+
     @Transactional
     public List<IncidentDto> getHistoriqueIncidentsResolus() {
         return incidentRepository.findByStatutOrderByDateResolutionDesc(StatutIncident.RESOLU)
