@@ -1,13 +1,16 @@
 package altn72.tpfilrouge.service;
 
 import altn72.tpfilrouge.dto.EvaluationDto;
+import altn72.tpfilrouge.evenement.IncidentModifieEvenement;
 import altn72.tpfilrouge.exception.EvaluationImpossibleException;
 import altn72.tpfilrouge.exception.IncidentIntrouvableException;
 import altn72.tpfilrouge.modele.Evaluation;
 import altn72.tpfilrouge.modele.Incident;
 import altn72.tpfilrouge.modele.StatutIncident;
+import altn72.tpfilrouge.modele.TypeEvenement;
 import altn72.tpfilrouge.repository.EvaluationRepository;
 import altn72.tpfilrouge.repository.IncidentRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,11 +22,13 @@ public class EvaluationService {
     private final EvaluationRepository evaluationRepository;
     private final IncidentRepository incidentRepository;
     private final Clock clock;
+    private final ApplicationEventPublisher evenementPublisher;
 
-    public EvaluationService(EvaluationRepository evaluationRepository, IncidentRepository incidentRepository, Clock clock) {
+    public EvaluationService(EvaluationRepository evaluationRepository, IncidentRepository incidentRepository, Clock clock, ApplicationEventPublisher evenementPublisher) {
         this.evaluationRepository = evaluationRepository;
         this.incidentRepository = incidentRepository;
         this.clock = clock;
+        this.evenementPublisher = evenementPublisher;
     }
 
     // F10 Évaluer l'intervention du prestataire d'un incident résolu (RG8)
@@ -40,7 +45,10 @@ public class EvaluationService {
         evaluation.setDateEvaluation(Instant.now(clock));
         incident.setEvaluation(evaluation);
 
-        return versDto(evaluationRepository.save(evaluation));
+        EvaluationDto evaluationDto = versDto(evaluationRepository.save(evaluation));
+        evenementPublisher.publishEvent(new IncidentModifieEvenement(incidentId, TypeEvenement.EVALUATION,
+                incident.getPrestataire().getNom() + " évalué " + note + "/5"));
+        return evaluationDto;
     }
 
     private void verifierEvaluable(Incident incident) {
