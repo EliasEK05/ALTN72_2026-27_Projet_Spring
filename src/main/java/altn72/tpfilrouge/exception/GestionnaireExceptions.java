@@ -25,9 +25,9 @@ public class GestionnaireExceptions {
         return new ErreurDto(HttpStatus.NOT_FOUND.value(), exception.getMessage());
     }
 
-    @ExceptionHandler(TransitionIncidentInterditeException.class)
+    @ExceptionHandler({TransitionIncidentInterditeException.class, EvaluationImpossibleException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ErreurDto gererTransitionInterdite(TransitionIncidentInterditeException exception) {
+    public ErreurDto gererOperationInterdite(RuntimeException exception) {
         return new ErreurDto(HttpStatus.CONFLICT.value(), exception.getMessage());
     }
 
