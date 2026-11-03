@@ -68,6 +68,14 @@ public class IncidentService {
     }
 
     @Transactional
+    public List<IncidentDto> getIncidentsActifs(Long stationId, String typeEquipement) {
+        return incidentRepository.findIncidentsActifs(stationId, typeEquipement)
+                .stream()
+                .map(this::versDto)
+                .toList();
+    }
+
+    @Transactional
     public List<IncidentDto> getHistoriqueIncidentsResolus() {
         return incidentRepository.findByStatutOrderByDateResolutionDesc(StatutIncident.RESOLU)
                 .stream()

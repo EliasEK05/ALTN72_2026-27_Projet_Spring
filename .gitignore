@@ -25,3 +25,6 @@ target/
 ### OS ###
 .DS_Store
 Thumbs.db
+
+### Configuration locale (identifiants de la base) ###
+application-local.properties
