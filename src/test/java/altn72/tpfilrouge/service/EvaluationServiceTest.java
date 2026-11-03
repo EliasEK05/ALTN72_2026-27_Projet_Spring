@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -35,12 +36,14 @@ class EvaluationServiceTest {
     private EvaluationRepository evaluationRepository;
     @Mock
     private IncidentRepository incidentRepository;
+    @Mock
+    private ApplicationEventPublisher evenementPublisher;
 
     private EvaluationService evaluationService;
 
     @BeforeEach
     void initialiser() {
-        evaluationService = new EvaluationService(evaluationRepository, incidentRepository, Clock.fixed(MAINTENANT, ZoneOffset.UTC));
+        evaluationService = new EvaluationService(evaluationRepository, incidentRepository, Clock.fixed(MAINTENANT, ZoneOffset.UTC), evenementPublisher);
     }
 
     @Test
