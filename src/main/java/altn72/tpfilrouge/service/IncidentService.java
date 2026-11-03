@@ -8,6 +8,9 @@ import altn72.tpfilrouge.exception.PrestataireIntrouvableException;
 import altn72.tpfilrouge.exception.TransitionIncidentInterditeException;
 import altn72.tpfilrouge.mapper.IncidentMapper;
 import altn72.tpfilrouge.modele.*;
+import altn72.tpfilrouge.repository.EquipementRepository;
+import altn72.tpfilrouge.repository.IncidentRepository;
+import altn72.tpfilrouge.repository.PrestataireRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

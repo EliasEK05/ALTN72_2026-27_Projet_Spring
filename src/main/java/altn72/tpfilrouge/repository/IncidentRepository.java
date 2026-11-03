@@ -1,5 +1,7 @@
-package altn72.tpfilrouge.modele;
+package altn72.tpfilrouge.repository;
 
+import altn72.tpfilrouge.modele.Incident;
+import altn72.tpfilrouge.modele.StatutIncident;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

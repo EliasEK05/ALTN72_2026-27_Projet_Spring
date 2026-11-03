@@ -1,7 +1,7 @@
 package altn72.tpfilrouge.service;
 
 import altn72.tpfilrouge.dto.StationDto;
-import altn72.tpfilrouge.modele.StationRepository;
+import altn72.tpfilrouge.repository.StationRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

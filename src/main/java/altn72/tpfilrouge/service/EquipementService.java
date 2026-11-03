@@ -7,8 +7,8 @@ import altn72.tpfilrouge.exception.EquipementIntrouvableException;
 import altn72.tpfilrouge.exception.StationIntrouvableException;
 import altn72.tpfilrouge.mapper.EquipementMapper;
 import altn72.tpfilrouge.modele.Equipement;
-import altn72.tpfilrouge.modele.EquipementRepository;
-import altn72.tpfilrouge.modele.StationRepository;
+import altn72.tpfilrouge.repository.EquipementRepository;
+import altn72.tpfilrouge.repository.StationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
