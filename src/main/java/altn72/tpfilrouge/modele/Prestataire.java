@@ -18,7 +18,6 @@ public class Prestataire {
     @Column(name = "contact", nullable = false)
     private String contact;
 
-    // Types d'équipement que le prestataire sait traiter (même valeurs que Equipement.type)
     @ElementCollection
     @CollectionTable(name = "prestataire_competence", joinColumns = @JoinColumn(name = "prestataire_id"))
     @Column(name = "type_equipement", nullable = false, length = 50)
