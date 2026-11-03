@@ -1,9 +1,9 @@
 package altn72.tpfilrouge.modele;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "prestataire")
@@ -17,6 +17,12 @@ public class Prestataire {
 
     @Column(name = "contact", nullable = false)
     private String contact;
+
+    // Types d'équipement que le prestataire sait traiter (même valeurs que Equipement.type)
+    @ElementCollection
+    @CollectionTable(name = "prestataire_competence", joinColumns = @JoinColumn(name = "prestataire_id"))
+    @Column(name = "type_equipement", nullable = false, length = 50)
+    private Set<String> competences = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -40,6 +46,14 @@ public class Prestataire {
 
     public void setContact(String contact) {
         this.contact = contact;
+    }
+
+    public Set<String> getCompetences() {
+        return competences;
+    }
+
+    public void setCompetences(Set<String> competences) {
+        this.competences = competences;
     }
 
 }

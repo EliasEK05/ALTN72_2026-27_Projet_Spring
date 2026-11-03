@@ -1,5 +1,6 @@
 package altn72.tpfilrouge.repository;
 
+import altn72.tpfilrouge.dto.HistoriquePrestataire;
 import altn72.tpfilrouge.modele.Incident;
 import altn72.tpfilrouge.modele.StatutIncident;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -41,4 +42,19 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
             ORDER BY nombreIncidents DESC
             """, nativeQuery = true)
     List<IncidentsActifsParStation> compterIncidentsActifsParStation();
+
+    // Recommandation : charge actuelle d'un prestataire (nombre d'incidents dans un statut donné)
+    long countByPrestataireIdAndStatut(Long prestataireId, StatutIncident statut);
+
+    // Recommandation : note moyenne et nombre d'interventions de chaque prestataire sur un type d'équipement
+    @Query("""
+            SELECT new altn72.tpfilrouge.dto.HistoriquePrestataire(p.id, AVG(e.note), COUNT(i))
+            FROM Incident i
+            JOIN i.prestataire p
+            LEFT JOIN i.evaluation e
+            WHERE i.equipement.type = :typeEquipement AND i.statut = :statut
+            GROUP BY p.id
+            """)
+    List<HistoriquePrestataire> findHistoriqueParTypeEquipement(@Param("typeEquipement") String typeEquipement,
+                                                                @Param("statut") StatutIncident statut);
 }
