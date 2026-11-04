@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- En-tête affiché en haut à droite de chaque page une fois connecté (F1) -->
+<header th:fragment="entete" th:if="${utilisateurConnecte}" style="text-align: right">
+    <form th:action="@{/logout}" method="post">
+        <span th:text="|Bonjour ${utilisateurConnecte.prenom} (${utilisateurConnecte.profil.libelle})|"></span> |
+        <button type="submit" style="border: none; background: none; color: #0645ad; text-decoration: underline; cursor: pointer; padding: 0">
+            Déconnectez-vous
+        </button>
+    </form>
+</header>
+</body>
+</html>
