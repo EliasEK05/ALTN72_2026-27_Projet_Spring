@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/tete :: tete('Erreur')}"></head>
+<body>
+<header th:replace="~{fragments/entete :: entete}"></header>
+<main class="container">
+    <h1 class="mb-3">Une erreur est survenue</h1>
+    <div class="alert alert-danger" th:text="${message}"></div>
+    <a th:href="@{/}" class="btn btn-primary">Retour à l'accueil</a>
+</main>
+</body>
+</html>

@@ -1,12 +1,16 @@
 package altn72.tpfilrouge.controleur;
 
+import altn72.tpfilrouge.config.SecuriteConfig;
 import altn72.tpfilrouge.exception.IncidentIntrouvableException;
 import altn72.tpfilrouge.exception.TransitionIncidentInterditeException;
 import altn72.tpfilrouge.service.IncidentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -18,6 +22,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(IncidentControleur.class)
+@Import(SecuriteConfig.class)
+@WithMockUser(roles = "RESPONSABLE_EXPLOITATION")
 class IncidentControleurTest {
 
     @Autowired
@@ -42,6 +48,15 @@ class IncidentControleurTest {
 
         mockMvc.perform(patch("/incident/1/resolution"))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void uneActionInterditePourLeProfilRenvoie403() throws Exception {
+        when(incidentService.resoudre(1L)).thenThrow(new AccessDeniedException("Accès refusé"));
+
+        mockMvc.perform(patch("/incident/1/resolution"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("Votre profil ne vous permet pas de réaliser cette action"));
     }
 
     @Test

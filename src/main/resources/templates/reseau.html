@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/tete :: tete('Réseau')}"></head>
+<body>
+<header th:replace="~{fragments/entete :: entete}"></header>
+<main class="container">
+    <h1 class="mb-4">Équipements par station</h1>
+
+    <!--/* F2 -- Équipements de chaque station, avec leur type et leur état de fonctionnement */-->
+    <section th:each="entree : ${equipementsParStation}" class="mb-4">
+        <h2 class="h4" th:text="${entree.key.nom}"></h2>
+        <table class="table table-sm align-middle">
+            <thead><tr><th>Référence</th><th>Libellé</th><th>Type</th><th>État</th></tr></thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(entree.value)}"><td colspan="4" class="text-muted">Aucun équipement.</td></tr>
+            <tr th:each="equipement : ${entree.value}">
+                <td><a th:href="@{/reseau/equipements/{id}(id=${equipement.id})}" th:text="${equipement.reference}"></a></td>
+                <td th:text="${equipement.libelle}"></td>
+                <td th:text="${equipement.type}"></td>
+                <td>
+                    <span th:classappend="${equipement.etatFonctionnement == 'EN_PANNE'} ? 'text-bg-danger' : 'text-bg-success'"
+                          class="badge" th:text="${equipement.etatFonctionnement == 'EN_PANNE'} ? 'En panne' : 'Fonctionnel'"></span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

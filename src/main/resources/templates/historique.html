@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/tete :: tete('Historique')}"></head>
+<body>
+<header th:replace="~{fragments/entete :: entete}"></header>
+<main class="container">
+    <h1 class="mb-4">Historique des incidents résolus</h1>
+
+    <!--/* F9 et RG7 -- Du plus récent au plus ancien, par date de résolution */-->
+    <table class="table table-hover align-middle">
+        <thead>
+        <tr><th>Résolu le</th><th>Incident</th><th>Station</th><th>Équipement</th><th>Prestataire</th><th>Note</th></tr>
+        </thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(incidents)}"><td colspan="6" class="text-muted">Aucun incident résolu.</td></tr>
+        <tr th:each="incident : ${incidents}">
+            <td><span th:replace="~{fragments/incident :: date(${incident.dateResolution})}"></span></td>
+            <td><a th:href="@{/incidents/{id}(id=${incident.id})}" th:text="${incident.description}"></a></td>
+            <td th:text="${incident.stationNom}"></td>
+            <td th:text="${incident.equipementReference}"></td>
+            <td th:text="${incident.prestataireNom} ?: '—'"></td>
+            <td th:text="${incident.note} != null ? |${incident.note}/5| : 'Non évalué'"></td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

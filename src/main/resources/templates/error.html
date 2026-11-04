@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/tete :: tete('Erreur')}"></head>
+<body>
+<!--/* Page d'erreur par défaut de Spring Boot (adresse inconnue, accès refusé hors contrôleur...) : jamais de trace technique */-->
+<main class="container mt-4">
+    <h1 class="mb-3">Une erreur est survenue</h1>
+    <div class="alert alert-danger" th:switch="${status}">
+        <span th:case="404">Cette page n'existe pas.</span>
+        <span th:case="403">Votre profil ne vous permet pas d'accéder à cette page.</span>
+        <span th:case="*">Une erreur inattendue est survenue.</span>
+    </div>
+    <a th:href="@{/}" class="btn btn-primary">Retour à l'accueil</a>
+</main>
+</body>
+</html>

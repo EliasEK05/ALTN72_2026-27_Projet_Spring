@@ -2,6 +2,7 @@ package altn72.tpfilrouge.service;
 
 import altn72.tpfilrouge.dto.DeclarerIncidentRequestDto;
 import altn72.tpfilrouge.dto.IncidentDto;
+import altn72.tpfilrouge.evenement.IncidentModifieEvenement;
 import altn72.tpfilrouge.exception.EquipementIntrouvableException;
 import altn72.tpfilrouge.exception.IncidentIntrouvableException;
 import altn72.tpfilrouge.exception.PrestataireIntrouvableException;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -41,6 +43,8 @@ class IncidentServiceTest {
     private EquipementRepository equipementRepository;
     @Mock
     private PrestataireRepository prestataireRepository;
+    @Mock
+    private ApplicationEventPublisher evenementPublisher;
 
     private IncidentService incidentService;
 
@@ -53,7 +57,8 @@ class IncidentServiceTest {
                 prestataireRepository,
                 new IncidentMapper(),
                 new CalculateurNiveauAttention(clock),
-                clock);
+                clock,
+                evenementPublisher);
     }
 
     @Test
@@ -168,6 +173,38 @@ class IncidentServiceTest {
 
         assertThat(historique).extracting(IncidentDto::id).containsExactly(2L, 1L);
         assertThat(historique).allMatch(incident -> incident.statut() == StatutIncident.RESOLU);
+    }
+
+    @Test
+    void lAffectationDUnPrestataireEstJournalisee() {
+        when(incidentRepository.findById(1L)).thenReturn(Optional.of(incidentNonAffecte(1L)));
+        when(prestataireRepository.findById(3L)).thenReturn(Optional.of(prestataire(3L)));
+
+        incidentService.affecterPrestataire(1L, 3L);
+
+        verify(evenementPublisher).publishEvent(new IncidentModifieEvenement(1L, TypeEvenement.AFFECTATION, "Affecté à Prestataire 3"));
+    }
+
+    @Test
+    void uneReaffectationEstJournaliseeAvecLAncienEtLeNouveauPrestataire() {
+        Incident incident = incidentNonAffecte(1L);
+        incident.setPrestataire(prestataire(3L));
+        incident.setStatut(StatutIncident.AFFECTE);
+        when(incidentRepository.findById(1L)).thenReturn(Optional.of(incident));
+        when(prestataireRepository.findById(4L)).thenReturn(Optional.of(prestataire(4L)));
+
+        incidentService.affecterPrestataire(1L, 4L);
+
+        verify(evenementPublisher).publishEvent(new IncidentModifieEvenement(1L, TypeEvenement.AFFECTATION, "Réaffecté de Prestataire 3 à Prestataire 4"));
+    }
+
+    @Test
+    void uneActionRefuseeNEstPasJournalisee() {
+        when(incidentRepository.findById(1L)).thenReturn(Optional.of(incidentResolu(1L)));
+
+        assertThatThrownBy(() -> incidentService.resoudre(1L))
+                .isInstanceOf(TransitionIncidentInterditeException.class);
+        verify(evenementPublisher, never()).publishEvent(any(Object.class));
     }
 
     private Incident incidentNonAffecte(Long id) {

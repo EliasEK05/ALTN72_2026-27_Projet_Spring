@@ -41,4 +41,9 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
             ORDER BY nombreIncidents DESC
             """, nativeQuery = true)
     List<IncidentsActifsParStation> compterIncidentsActifsParStation();
+
+    // Aide à l'affectation : incidents d'un prestataire, en cours ou résolus sur un type d'équipement
+    long countByPrestataireIdAndStatut(Long prestataireId, StatutIncident statut);
+
+    long countByPrestataireIdAndEquipementTypeAndStatut(Long prestataireId, String typeEquipement, StatutIncident statut);
 }
