@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* RG3 et RG4 -- Un incident affecté a un état distinct : il ne porte jamais le vert, l'orange ou le rouge. */-->
+<span th:fragment="niveau(niveau)" th:switch="${niveau?.name()}">
+    <span th:case="'VERT'" class="badge text-bg-success">Vert</span>
+    <span th:case="'ORANGE'" class="badge text-bg-warning">Orange</span>
+    <span th:case="'ROUGE'" class="badge text-bg-danger">Rouge</span>
+    <span th:case="'AFFECTE'" class="badge text-bg-primary">Pris en charge</span>
+</span>
+
+<span th:fragment="statut(statut)" th:switch="${statut.name()}">
+    <span th:case="'NON_AFFECTE'">Non affecté</span>
+    <span th:case="'AFFECTE'">Affecté</span>
+    <span th:case="'RESOLU'">Résolu</span>
+</span>
+
+<span th:fragment="date(instant)" th:text="${instant != null ? #temporals.format(instant, 'dd/MM/yyyy HH:mm') : '—'}"></span>
+</body>
+</html>

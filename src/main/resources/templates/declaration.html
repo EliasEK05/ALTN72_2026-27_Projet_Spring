@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/tete :: tete('Déclarer un incident')}"></head>
+<body>
+<header th:replace="~{fragments/entete :: entete}"></header>
+<main class="container">
+    <h1 class="mb-3">Déclarer un incident</h1>
+    <p>
+        Équipement <strong th:text="|${fiche.reference} - ${fiche.libelle}|"></strong>,
+        station <strong th:text="${fiche.stationNom}"></strong>
+    </p>
+
+    <div th:replace="~{fragments/messages :: messages}"></div>
+
+    <!--/* F4 -- La description est obligatoire : vérifiée par le navigateur, puis par le serveur (@NotBlank) */-->
+    <form th:action="@{/incidents}" method="POST" class="col-lg-8">
+        <input type="hidden" name="equipementId" th:value="${fiche.id}">
+        <label class="form-label" for="description">Description de la panne</label>
+        <textarea id="description" name="description" class="form-control mb-3" rows="3" required
+                  th:text="${param.description}"></textarea>
+        <button type="submit" class="btn btn-primary">Déclarer</button>
+        <a th:href="@{/reseau/equipements/{id}(id=${fiche.id})}" class="btn btn-link">Annuler</a>
+    </form>
+</main>
+</body>
+</html>

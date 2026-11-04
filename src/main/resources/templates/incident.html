@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/tete :: tete('Incident')}"></head>
+<body>
+<header th:replace="~{fragments/entete :: entete}"></header>
+<main class="container" th:with="resolu=${incident.statut.name() == 'RESOLU'}, responsable=${utilisateurConnecte?.estResponsable()}">
+    <div th:replace="~{fragments/messages :: messages}"></div>
+
+    <h1 class="mb-1">
+        <span th:text="|Incident n°${incident.id}|"></span>
+        <th:block th:unless="${resolu}"><span th:replace="~{fragments/incident :: niveau(${incident.niveauAttention})}"></span></th:block>
+    </h1>
+    <p class="text-muted" th:text="${incident.description}"></p>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <table class="table">
+                <tr><th>Statut</th><td><span th:replace="~{fragments/incident :: statut(${incident.statut})}"></span></td></tr>
+                <tr><th>Station</th><td th:text="${incident.stationNom}"></td></tr>
+                <tr><th>Équipement</th>
+                    <td><a th:href="@{/reseau/equipements/{id}(id=${incident.equipementId})}"
+                           th:text="|${incident.equipementReference} - ${incident.equipementLibelle}|"></a></td></tr>
+                <tr><th>Ouvert le</th><td><span th:replace="~{fragments/incident :: date(${incident.dateOuverture})}"></span></td></tr>
+                <tr><th th:text="${resolu} ? 'Durée avant résolution' : 'Ouvert depuis'"></th>
+                    <td th:text="|${incident.dureeOuverture.toHours()} h|"></td></tr>
+                <tr th:if="${resolu}"><th>Résolu le</th><td><span th:replace="~{fragments/incident :: date(${incident.dateResolution})}"></span></td></tr>
+                <tr><th>Prestataire</th><td th:text="${incident.prestataireNom} ?: 'Aucun'"></td></tr>
+                <tr th:if="${incident.note != null}"><th>Évaluation</th>
+                    <td><span th:text="|${incident.note}/5|"></span>
+                        <span class="text-muted" th:if="${incident.commentaireEvaluation}" th:text="| - ${incident.commentaireEvaluation}|"></span></td></tr>
+            </table>
+
+            <!--/* F6 -- Seule la description est modifiable, tant que l'incident n'est pas résolu */-->
+            <form th:unless="${resolu}" th:action="@{/incidents/{id}/description(id=${incident.id})}" method="POST" class="mb-4">
+                <label class="form-label fw-bold" for="description">Modifier la description</label>
+                <textarea id="description" name="description" class="form-control mb-2" rows="2" required
+                          th:text="${incident.description}"></textarea>
+                <button type="submit" class="btn btn-outline-primary btn-sm">Enregistrer</button>
+            </form>
+
+            <div th:if="${responsable and not resolu}" class="mb-4">
+                <!--/* F7 -- Affecter ou réaffecter un prestataire */-->
+                <form th:action="@{/incidents/{id}/affectation(id=${incident.id})}" method="POST" class="row g-2 align-items-end mb-3">
+                    <div class="col">
+                        <label class="form-label fw-bold" for="prestataireId"
+                               th:text="${incident.prestataireId} ? 'Réaffecter à un autre prestataire' : 'Affecter à un prestataire'"></label>
+                        <select id="prestataireId" name="prestataireId" class="form-select" required>
+                            <option value="">Choisir un prestataire</option>
+                            <option th:each="prestataire : ${prestataires}" th:value="${prestataire.id}"
+                                    th:text="${prestataire.nom} + (${prestataire.noteMoyenne} != null ? ' (' + ${#numbers.formatDecimal(prestataire.noteMoyenne, 1, 1)} + '/5)' : '')"
+                                    th:selected="${prestataire.id == incident.prestataireId}"></option>
+                        </select>
+                    </div>
+                    <div class="col-auto"><button type="submit" class="btn btn-primary">Affecter</button></div>
+                </form>
+
+                <!--/* F8 -- Déclarer l'incident comme résolu */-->
+                <form th:action="@{/incidents/{id}/resolution(id=${incident.id})}" method="POST">
+                    <button type="submit" class="btn btn-success">Déclarer l'incident résolu</button>
+                </form>
+            </div>
+
+            <!--/* F10 -- Évaluation possible une seule fois, sur un incident résolu et affecté (RG8) */-->
+            <form th:if="${responsable and resolu and incident.prestataireId != null and incident.note == null}"
+                  th:action="@{/incidents/{id}/evaluation(id=${incident.id})}" method="POST" class="mb-4">
+                <h2 class="h5" th:text="|Évaluer ${incident.prestataireNom}|"></h2>
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <label class="form-label" for="note">Note</label>
+                        <select id="note" name="note" class="form-select" required>
+                            <option th:each="note : ${#numbers.sequence(5, 1, -1)}" th:value="${note}" th:text="|${note}/5|"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-9">
+                        <label class="form-label" for="commentaire">Commentaire (facultatif)</label>
+                        <input type="text" id="commentaire" name="commentaire" class="form-control">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Enregistrer l'évaluation</button>
+            </form>
+        </div>
+
+        <div class="col-lg-5">
+            <!--/* Lot alpha, piste 3 -- Aide à l'affectation */-->
+            <div th:if="${recommandations != null}" class="card mb-4">
+                <div class="card-header fw-bold">Prestataires recommandés</div>
+                <ul class="list-group list-group-flush">
+                    <li th:if="${#lists.isEmpty(recommandations)}" class="list-group-item text-muted">
+                        Aucun prestataire compétent et disponible pour ce type d'équipement.
+                    </li>
+                    <li th:each="recommandation : ${recommandations}" class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <strong th:text="${recommandation.nom}"></strong>
+                            <form th:action="@{/incidents/{id}/affectation(id=${incident.id})}" method="POST">
+                                <input type="hidden" name="prestataireId" th:value="${recommandation.prestataireId}">
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Affecter</button>
+                            </form>
+                        </div>
+                        <ul class="small text-muted mb-0">
+                            <li th:each="argument : ${recommandation.arguments}" th:text="${argument}"></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <!--/* Lot alpha, piste 5 -- Journal métier */-->
+            <div class="card">
+                <div class="card-header fw-bold">Journal</div>
+                <ul class="list-group list-group-flush">
+                    <li th:if="${#lists.isEmpty(journal)}" class="list-group-item text-muted">Aucun événement enregistré.</li>
+                    <li th:each="evenement : ${journal}" class="list-group-item">
+                        <div class="small text-muted">
+                            <span th:replace="~{fragments/incident :: date(${evenement.dateEvenement})}"></span>
+                            - <span th:text="${evenement.auteur}"></span>
+                        </div>
+                        <div th:text="${evenement.details}"></div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>
