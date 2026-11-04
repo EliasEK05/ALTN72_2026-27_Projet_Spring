@@ -40,6 +40,10 @@ public class EquipementService {
                 .toList();
     }
 
+    public List<String> getTypesEquipement() {
+        return equipementRepository.findTypesEquipement();
+    }
+
     // F3 Récupère la fiche d'un équipement avec ses incidents
     @Transactional
     public FicheEquipement getFicheEquipement(Long equipementId) {

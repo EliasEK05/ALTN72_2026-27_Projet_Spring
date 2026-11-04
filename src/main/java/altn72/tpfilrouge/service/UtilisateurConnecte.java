@@ -44,4 +44,8 @@ public class UtilisateurConnecte implements UserDetails {
     public ProfilUtilisateur getProfil() {
         return profil;
     }
+
+    public boolean estResponsable() {
+        return profil == ProfilUtilisateur.RESPONSABLE_EXPLOITATION;
+    }
 }
