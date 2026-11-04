@@ -1,5 +1,6 @@
 package altn72.tpfilrouge.service;
 
+import altn72.tpfilrouge.config.ReserveAuResponsable;
 import altn72.tpfilrouge.dto.DeclarerIncidentRequestDto;
 import altn72.tpfilrouge.dto.IncidentDto;
 import altn72.tpfilrouge.evenement.IncidentModifieEvenement;
@@ -99,6 +100,7 @@ public class IncidentService {
         return versDto(incident);
     }
 
+    @ReserveAuResponsable
     @Transactional
     public IncidentDto affecterPrestataire(Long incidentId, Long prestataireId) {
         Incident incident = trouverIncident(incidentId);
@@ -112,6 +114,7 @@ public class IncidentService {
         return versDto(incident);
     }
 
+    @ReserveAuResponsable
     @Transactional
     public IncidentDto resoudre(Long incidentId) {
         Incident incident = trouverIncident(incidentId);

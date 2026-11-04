@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(StationControleur.class)
 @Import(SecuriteConfig.class)
-@WithMockUser
+@WithMockUser(roles = "RESPONSABLE_EXPLOITATION")
 class StationControleurTest {
 
     @Autowired

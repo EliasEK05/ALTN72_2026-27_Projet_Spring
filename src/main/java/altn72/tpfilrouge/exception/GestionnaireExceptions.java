@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,6 +30,13 @@ public class GestionnaireExceptions {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErreurDto gererOperationInterdite(RuntimeException exception) {
         return new ErreurDto(HttpStatus.CONFLICT.value(), exception.getMessage());
+    }
+
+    // RG11 Action interdite pour le profil de l'utilisateur connecté
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErreurDto gererAccesRefuse() {
+        return new ErreurDto(HttpStatus.FORBIDDEN.value(), "Votre profil ne vous permet pas de réaliser cette action");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

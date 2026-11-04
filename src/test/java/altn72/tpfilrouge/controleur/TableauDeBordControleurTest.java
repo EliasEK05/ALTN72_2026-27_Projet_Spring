@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(TableauDeBordControleur.class)
 @Import(SecuriteConfig.class)
-@WithMockUser
+@WithMockUser(roles = "RESPONSABLE_EXPLOITATION")
 class TableauDeBordControleurTest {
 
     @Autowired

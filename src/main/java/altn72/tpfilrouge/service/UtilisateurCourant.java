@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class UtilisateurCourant {
     private static final String AUTEUR_PAR_DEFAUT = "Système";
 
-    // Sans utilisateur connecté (tests unitaires, traitement automatique), l'action est attribuée au système
+    // Sans utilisateur connecté, l'action est attribuée au système
     public String getLogin() {
         Authentication authentification = SecurityContextHolder.getContext().getAuthentication();
         if (authentification == null) {
