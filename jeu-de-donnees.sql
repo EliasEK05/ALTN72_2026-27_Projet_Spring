@@ -76,4 +76,9 @@ INSERT IGNORE INTO incident (id, description, date_ouverture, statut, date_resol
     (24, 'Portique qui reste fermé',            NOW() - INTERVAL 60 HOUR, 'NON_AFFECTE', NULL, 9,  NULL),
     (25, 'Distributeur qui refuse les cartes',  NOW() - INTERVAL 6 HOUR,  'NON_AFFECTE', NULL, 10, NULL);
 
+-- Comptes de démonstration (F1). Mots de passe hachés en BCrypt : responsable / responsable123 et agent / agent123
+INSERT IGNORE INTO utilisateur (id, login, mot_de_passe, prenom, profil) VALUES
+    (1, 'responsable', '$2b$10$uGq0KfLygoa0K8kB3aLHZOqfoSj3Q6qT/btipg9ryHIg9M3MiULSq', 'Camille', 'RESPONSABLE_EXPLOITATION'),
+    (2, 'agent',       '$2b$10$dltAXM3L5rG4ydB39umUWulZ57v6fmZvZNBRRxjkqi.qUo2kfcPlS', 'Lucas',   'AGENT_TERRAIN');
+
 COMMIT;
