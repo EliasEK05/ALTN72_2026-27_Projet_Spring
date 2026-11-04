@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/tete :: tete('Tableau de bord')}"></head>
+<body>
+<header th:replace="~{fragments/entete :: entete}"></header>
+<main class="container">
+    <h1 class="mb-4">Tableau de bord</h1>
+
+    <!--/* Les indicateurs résument tout le réseau ; un clic sur une carte filtre la liste sur ce niveau */-->
+    <h2 class="h6 text-muted">Sur l'ensemble du réseau</h2>
+    <div class="row g-3 mb-4" th:with="indicateurs=${tableauDeBord.indicateurs}">
+        <div class="col"><a th:href="@{/supervision}" class="card text-center text-decoration-none h-100"><div class="card-body">
+            <div class="fs-2 fw-bold" th:text="${indicateurs.nombreIncidentsActifs}">0</div>Incidents actifs
+        </div></a></div>
+        <div class="col"><a th:href="@{/supervision(niveauAttention='ROUGE')}" class="card text-center text-decoration-none border-danger h-100"><div class="card-body">
+            <div class="fs-2 fw-bold text-danger" th:text="${indicateurs.nombreRouges}">0</div>Rouges (72 h et plus)
+        </div></a></div>
+        <div class="col"><a th:href="@{/supervision(niveauAttention='ORANGE')}" class="card text-center text-decoration-none border-warning h-100"><div class="card-body">
+            <div class="fs-2 fw-bold text-warning" th:text="${indicateurs.nombreOranges}">0</div>Oranges (48 à 72 h)
+        </div></a></div>
+        <div class="col"><a th:href="@{/supervision(niveauAttention='VERT')}" class="card text-center text-decoration-none border-success h-100"><div class="card-body">
+            <div class="fs-2 fw-bold text-success" th:text="${indicateurs.nombreVerts}">0</div>Verts (moins de 48 h)
+        </div></a></div>
+        <div class="col"><a th:href="@{/supervision(niveauAttention='AFFECTE')}" class="card text-center text-decoration-none border-primary h-100"><div class="card-body">
+            <div class="fs-2 fw-bold text-primary" th:text="${indicateurs.nombreAffectes}">0</div>Pris en charge
+        </div></a></div>
+    </div>
+
+    <form th:action="@{/supervision}" method="GET" class="row g-2 align-items-end mb-3">
+        <div class="col-md-3">
+            <label class="form-label" for="stationId">Station</label>
+            <select id="stationId" name="stationId" class="form-select">
+                <option value="">Toutes</option>
+                <option th:each="station : ${stations}" th:value="${station.id}" th:text="${station.nom}"
+                        th:selected="${station.id == stationId}"></option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="typeEquipement">Type d'équipement</label>
+            <select id="typeEquipement" name="typeEquipement" class="form-select">
+                <option value="">Tous</option>
+                <option th:each="type : ${typesEquipement}" th:value="${type}" th:text="${type}"
+                        th:selected="${type == typeEquipement}"></option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="niveauAttention">Niveau d'attention</label>
+            <select id="niveauAttention" name="niveauAttention" class="form-select">
+                <option value="">Tous</option>
+                <option th:each="niveau : ${niveauxAttention}" th:value="${niveau}"
+                        th:text="${niveau.name() == 'AFFECTE' ? 'Pris en charge' : #strings.capitalize(#strings.toLowerCase(niveau.name()))}"
+                        th:selected="${niveau == niveauAttention}"></option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary">Filtrer</button>
+            <a th:href="@{/supervision}" class="btn btn-link">Réinitialiser</a>
+        </div>
+    </form>
+
+    <div class="row">
+        <div class="col-lg-9">
+            <p class="fw-bold mb-2" th:with="nombre=${#lists.size(tableauDeBord.incidents)}"
+               th:text="${nombre} + (${nombre > 1} ? ' incidents correspondent' : ' incident correspond') + ' aux filtres'"></p>
+            <table class="table table-hover align-middle">
+                <thead>
+                <tr><th>Attention</th><th>Incident</th><th>Station</th><th>Équipement</th><th>Ouvert depuis</th><th>Prestataire</th></tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(tableauDeBord.incidents)}">
+                    <td colspan="6" class="text-muted">Aucun incident actif pour ces critères.</td>
+                </tr>
+                <tr th:each="incident : ${tableauDeBord.incidents}">
+                    <td><span th:replace="~{fragments/incident :: niveau(${incident.niveauAttention})}"></span></td>
+                    <td><a th:href="@{/incidents/{id}(id=${incident.id})}" th:text="${incident.description}"></a></td>
+                    <td th:text="${incident.stationNom}"></td>
+                    <td th:text="|${incident.equipementReference} - ${incident.equipementLibelle}|"></td>
+                    <td th:text="|${incident.dureeOuverture.toHours()} h|"></td>
+                    <td th:text="${incident.prestataireNom} ?: '—'"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-lg-3">
+            <h2 class="h6">Incidents actifs par station</h2>
+            <ul class="list-group">
+                <li th:each="ligne : ${tableauDeBord.indicateurs.incidentsParStation}"
+                    class="list-group-item d-flex justify-content-between">
+                    <span th:text="${ligne.stationNom}"></span>
+                    <span class="badge text-bg-secondary" th:text="${ligne.nombreIncidents}"></span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</main>
+</body>
+</html>

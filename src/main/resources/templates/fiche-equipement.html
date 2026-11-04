@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/tete :: tete('Fiche équipement')}"></head>
+<body>
+<header th:replace="~{fragments/entete :: entete}"></header>
+<main class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 th:text="|${fiche.reference} - ${fiche.libelle}|"></h1>
+        <a th:href="@{/incidents/nouveau(equipementId=${fiche.id})}" class="btn btn-danger">Déclarer un incident</a>
+    </div>
+
+    <!--/* F3 -- Informations de l'équipement et liste de ses incidents, en cours et passés */-->
+    <table class="table w-auto mb-4">
+        <tr><th>Station</th><td th:text="${fiche.stationNom}"></td></tr>
+        <tr><th>Type</th><td th:text="${fiche.type}"></td></tr>
+        <tr><th>État</th><td th:text="${fiche.etatFonctionnement == 'EN_PANNE'} ? 'En panne' : 'Fonctionnel'"></td></tr>
+    </table>
+
+    <h2 class="h4">Incidents</h2>
+    <table class="table table-hover align-middle">
+        <thead><tr><th>Ouvert le</th><th>Incident</th><th>Statut</th><th>Prestataire</th><th>Note</th></tr></thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(fiche.incidents)}"><td colspan="5" class="text-muted">Aucun incident sur cet équipement.</td></tr>
+        <tr th:each="incident : ${fiche.incidents}">
+            <td><span th:replace="~{fragments/incident :: date(${incident.dateOuverture})}"></span></td>
+            <td><a th:href="@{/incidents/{id}(id=${incident.id})}" th:text="${incident.description}"></a></td>
+            <td><span th:replace="~{fragments/incident :: statut(${incident.statut})}"></span></td>
+            <td th:text="${incident.prestataireNom} ?: '—'"></td>
+            <td th:text="${incident.note} != null ? |${incident.note}/5| : '—'"></td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>
