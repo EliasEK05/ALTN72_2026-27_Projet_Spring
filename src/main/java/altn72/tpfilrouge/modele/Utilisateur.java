@@ -2,6 +2,8 @@ package altn72.tpfilrouge.modele;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -12,7 +14,7 @@ public class Utilisateur {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "login", nullable = false, length = 50)
+    @Column(name = "login", nullable = false, unique = true, length = 50)
     private String login;
 
     @Column(name = "mot_de_passe", nullable = false)
@@ -21,8 +23,9 @@ public class Utilisateur {
     @Column(name = "prenom", nullable = false, length = 50)
     private String prenom;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "profil", nullable = false, length = 50)
-    private String profil;
+    private ProfilUtilisateur profil;
 
     public Long getId() {
         return id;
@@ -56,11 +59,11 @@ public class Utilisateur {
         this.prenom = prenom;
     }
 
-    public String getProfil() {
+    public ProfilUtilisateur getProfil() {
         return profil;
     }
 
-    public void setProfil(String profil) {
+    public void setProfil(ProfilUtilisateur profil) {
         this.profil = profil;
     }
 
