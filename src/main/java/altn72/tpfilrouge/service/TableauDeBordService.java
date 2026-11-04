@@ -1,5 +1,6 @@
 package altn72.tpfilrouge.service;
 
+import altn72.tpfilrouge.config.ReserveAuResponsable;
 import altn72.tpfilrouge.dto.IncidentDto;
 import altn72.tpfilrouge.dto.IncidentsParStationDto;
 import altn72.tpfilrouge.dto.IndicateursDto;
@@ -21,6 +22,7 @@ public class TableauDeBordService {
     }
 
     // F11 Incidents actifs filtrés et indicateurs sur l'ensemble du réseau
+    @ReserveAuResponsable
     public TableauDeBordDto getTableauDeBord(Long stationId, String typeEquipement, NiveauAttention niveauAttention) {
         List<IncidentDto> incidents = incidentService.getIncidentsActifs(stationId, typeEquipement)
                 .stream()

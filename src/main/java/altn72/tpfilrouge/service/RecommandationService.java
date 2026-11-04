@@ -1,5 +1,6 @@
 package altn72.tpfilrouge.service;
 
+import altn72.tpfilrouge.config.ReserveAuResponsable;
 import altn72.tpfilrouge.dto.RecommandationPrestataireDto;
 import altn72.tpfilrouge.exception.IncidentIntrouvableException;
 import altn72.tpfilrouge.exception.TransitionIncidentInterditeException;
@@ -31,6 +32,7 @@ public class RecommandationService {
     }
 
     // Aide à l'affectation : les prestataires disponibles les mieux notés pour le type d'équipement de l'incident
+    @ReserveAuResponsable
     @Transactional(readOnly = true)
     public List<RecommandationPrestataireDto> recommanderPrestataires(Long incidentId) {
         Incident incident = incidentRepository.findById(incidentId)

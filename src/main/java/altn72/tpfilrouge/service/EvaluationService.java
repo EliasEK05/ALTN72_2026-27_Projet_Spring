@@ -1,5 +1,6 @@
 package altn72.tpfilrouge.service;
 
+import altn72.tpfilrouge.config.ReserveAuResponsable;
 import altn72.tpfilrouge.dto.EvaluationDto;
 import altn72.tpfilrouge.evenement.IncidentModifieEvenement;
 import altn72.tpfilrouge.exception.EvaluationImpossibleException;
@@ -32,6 +33,7 @@ public class EvaluationService {
     }
 
     // F10 Évaluer l'intervention du prestataire d'un incident résolu (RG8)
+    @ReserveAuResponsable
     @Transactional
     public EvaluationDto evaluer(Long incidentId, Integer note, String commentaire) {
         Incident incident = incidentRepository.findById(incidentId)
