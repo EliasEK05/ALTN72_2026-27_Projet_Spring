@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* F1 -- En-tête affiché en haut à droite de chaque page une fois connecté.
+       La déconnexion passe par un formulaire POST vers /logout (URL par défaut de Spring Security), présenté comme un lien. */-->
+<header th:fragment="entete" th:if="${utilisateurConnecte}" class="d-flex justify-content-end mb-3">
+    <form th:action="@{/logout}" method="POST">
+        <span th:text="|Bonjour ${utilisateurConnecte.prenom} (${utilisateurConnecte.profil.libelle})|"></span> |
+        <button type="submit" class="btn btn-link p-0 align-baseline">Déconnectez-vous</button>
+    </form>
+</header>
+</body>
+</html>

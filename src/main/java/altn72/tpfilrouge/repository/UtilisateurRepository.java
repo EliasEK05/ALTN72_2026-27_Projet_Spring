@@ -1,4 +1,10 @@
 package altn72.tpfilrouge.repository;
 
-public interface UtilisateurRepository {
+import altn72.tpfilrouge.modele.Utilisateur;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> {
+    Optional<Utilisateur> findByLogin(String login);
 }

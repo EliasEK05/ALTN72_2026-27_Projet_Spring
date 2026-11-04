@@ -1,12 +1,15 @@
 package altn72.tpfilrouge.controleur;
 
+import altn72.tpfilrouge.config.SecuriteConfig;
 import altn72.tpfilrouge.exception.IncidentIntrouvableException;
 import altn72.tpfilrouge.exception.TransitionIncidentInterditeException;
 import altn72.tpfilrouge.service.IncidentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -18,6 +21,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(IncidentControleur.class)
+@Import(SecuriteConfig.class)
+@WithMockUser
 class IncidentControleurTest {
 
     @Autowired
