@@ -5,10 +5,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-// Met l'utilisateur connecté à disposition de toutes les pages, pour l'en-tête « Bonjour [Prénom] ([profil]) » (F1)
 @ControllerAdvice
 public class UtilisateurConnecteAdvice {
 
+    // F1 Utilisateur affiché dans l'en-tête de chaque page
     @ModelAttribute("utilisateurConnecte")
     public UtilisateurConnecte utilisateurConnecte(@AuthenticationPrincipal UtilisateurConnecte utilisateurConnecte) {
         return utilisateurConnecte;

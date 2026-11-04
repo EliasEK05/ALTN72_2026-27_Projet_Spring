@@ -9,7 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-// Utilisateur tel que Spring Security le garde en session : on y conserve le prénom et le profil pour l'en-tête des pages (F1)
 public class UtilisateurConnecte implements UserDetails {
     private final String login;
     private final String motDePasse;

@@ -6,7 +6,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-// Spring Security appelle ce service lors de la connexion (F1) pour retrouver l'utilisateur à partir de son login
 @Service
 public class ConnexionService implements UserDetailsService {
     private final UtilisateurRepository utilisateurRepository;
@@ -15,6 +14,7 @@ public class ConnexionService implements UserDetailsService {
         this.utilisateurRepository = utilisateurRepository;
     }
 
+    // F1 Retrouve l'utilisateur qui se connecte à partir de son login
     @Override
     public UserDetails loadUserByUsername(String login) {
         return utilisateurRepository.findByLogin(login)

@@ -12,23 +12,21 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecuriteConfig {
 
+    // F1 Pages et API réservées aux utilisateurs connectés (§7.7)
     @Bean
     public SecurityFilterChain filtreDeSecurite(HttpSecurity http) throws Exception {
         http
-                // Toutes les pages et l'API demandent d'être connecté, sauf la page de connexion (§7.7)
                 .authorizeHttpRequests(autorisations -> autorisations
                         .requestMatchers("/connexion", "/error").permitAll()
                         .anyRequest().authenticated())
-                // F1 : en cas d'erreur, on réaffiche la même page avec un message
                 .formLogin(formulaire -> formulaire
                         .loginPage("/connexion")
                         .defaultSuccessUrl("/", true)
                         .failureUrl("/connexion?erreur"))
                 .logout(deconnexion -> deconnexion
                         .logoutSuccessUrl("/connexion?deconnexion"))
-                // L'API REST peut aussi être appelée avec login et mot de passe (requetes.http, Postman)
                 .httpBasic(Customizer.withDefaults())
-                // Désactivé : l'API REST est appelée hors navigateur, par des clients qui n'ont pas de jeton CSRF
+                // CSRF désactivé pour que l'API REST reste appelable hors navigateur
                 .csrf(AbstractHttpConfigurer::disable);
         return http.build();
     }
