@@ -7,8 +7,10 @@ import altn72.tpfilrouge.service.ConnexionService;
 import altn72.tpfilrouge.service.UtilisateurConnecte;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,11 +25,11 @@ import static org.springframework.security.test.web.servlet.response.SecurityMoc
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-@WebMvcTest({ConnexionControleur.class, AccueilControleur.class})
+// Sans cette exclusion, Spring Boot ajoute un second UserDetailsService à côté du mock et la connexion échoue
+@WebMvcTest(controllers = {ConnexionControleur.class, AccueilControleur.class}, excludeAutoConfiguration = UserDetailsServiceAutoConfiguration.class)
 @Import(SecuriteConfig.class)
 class ConnexionControleurTest {
     private static final String MOT_DE_PASSE = "responsable123";
@@ -47,9 +49,9 @@ class ConnexionControleurTest {
 
     @Test
     void unUtilisateurNonConnecteEstRedirigeVersLaConnexion() throws Exception {
-        mockMvc.perform(get("/"))
+        mockMvc.perform(get("/").accept(MediaType.TEXT_HTML))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("**/connexion"));
+                .andExpect(redirectedUrl("/connexion"));
     }
 
     @Test
