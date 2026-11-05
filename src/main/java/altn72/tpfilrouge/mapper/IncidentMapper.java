@@ -20,7 +20,7 @@ public class IncidentMapper {
         return incident;
     }
 
-    public IncidentDto toIncidentDto(Incident incident, Duration dureeOuverture, NiveauAttention niveauAttention) {
+    public IncidentDto toIncidentDto(Incident incident, Duration dureeOuverture, NiveauAttention niveauAttention, boolean equipementFragile) {
         Equipement equipement = incident.getEquipement();
         Prestataire prestataire = incident.getPrestataire();
         Evaluation evaluation = incident.getEvaluation();
@@ -40,7 +40,8 @@ public class IncidentMapper {
                 evaluation != null ? evaluation.getNote() : null,
                 evaluation != null ? evaluation.getCommentaire() : null,
                 dureeOuverture,
-                niveauAttention
+                niveauAttention,
+                equipementFragile
         );
     }
 }
