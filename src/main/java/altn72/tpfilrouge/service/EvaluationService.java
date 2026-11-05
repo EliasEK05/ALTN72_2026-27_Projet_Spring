@@ -32,7 +32,7 @@ public class EvaluationService {
         this.evenementPublisher = evenementPublisher;
     }
 
-    // F10 Évaluer l'intervention du prestataire d'un incident résolu (RG8)
+    // Évaluer l'intervention du prestataire d'un incident résolu
     @ReserveAuResponsable
     @Transactional
     public EvaluationDto evaluer(Long incidentId, Integer note, String commentaire) {
