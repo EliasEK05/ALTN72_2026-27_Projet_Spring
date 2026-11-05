@@ -1,46 +1,121 @@
-### Partie 5 -- Depuis la section 5.4, le contrôleur renvoie des pages HTML (et non plus du JSON).
-### Les requêtes JSON de la partie 4 ne fonctionnent donc plus. Celles-ci montrent ce que reçoit / envoie un NAVIGATEUR.
+### Requêtes de démonstration de l'API REST (client HTTP d'IntelliJ)
+### L'API exige d'être connecté : HTTP Basic avec les comptes de test de db/create.sql
+@hote = http://localhost:8080
+@responsable = Basic responsable responsable123
+@agent = Basic agent agent123
 
-### 5.9 -- Liste des programmeurs : page HTML (listeProgrammeurs), 200 OK
-GET http://localhost:8080/programmeurs
+### F11 : Tableau de bord : incidents actifs et indicateurs, 200
+GET {{hote}}/tableau-de-bord
+Authorization: {{responsable}}
 
-### 5.12.1 -- Page de modification d'un programmeur existant (formulaire prérempli), 200 OK
-GET http://localhost:8080/programmeurs/1
+### F11 : Tableau de bord filtré par station et par niveau d'attention, 200
+GET {{hote}}/tableau-de-bord?stationId=3&niveauAttention=ROUGE
+Authorization: {{responsable}}
 
-### 5.12 -- Programmeur inexistant : 404 (page d'erreur avec le message)
-GET http://localhost:8080/programmeurs/9999
+### RG11 : Le tableau de bord est réservé au responsable : 403
+GET {{hote}}/tableau-de-bord
+Authorization: {{agent}}
 
-### 5.11.1 -- Formulaire d'ajout vierge, 200 OK
-GET http://localhost:8080/programmeurs/nouveau
+### F12 : Liste de tous les incidents, 200
+GET {{hote}}/incident
+Authorization: {{agent}}
 
-### 5.11.2 -- Ce qu'envoie le navigateur à la validation du formulaire d'ajout : des paires nom=valeur (PAS du JSON)
-### Réponse attendue : 302 Found + en-tête Location: /programmeurs (redirection). "@no-redirect" empêche le client de la suivre, pour qu'on la voie.
-# @no-redirect
-POST http://localhost:8080/programmeurs
-Content-Type: application/x-www-form-urlencoded
+### F5 : Détail d'un incident, 200
+GET {{hote}}/incident/1
+Authorization: {{agent}}
 
-nom=Turing&prenom=Alan&adresse=1944+Enigma+Street&langageExpertise=Java&livrePrefere=Computing+machinery&salaire=101010.1
+### F12 : Incident inexistant : 404 avec un message en français
+GET {{hote}}/incident/999
+Authorization: {{agent}}
 
-### 5.10.2 -- Ce qui se passe quand un formulaire envoie un simple POST sur une route DELETE : 405 Method Not Allowed
-POST http://localhost:8080/programmeurs/11
+### F4 : Déclarer un incident sur un équipement, 201
+POST {{hote}}/incident
+Authorization: {{agent}}
+Content-Type: application/json
 
-### 5.10.3 -- Ce qu'envoie le navigateur avec le champ caché _method (filtre activé dans application.properties) : traité comme un DELETE
-### Réponse attendue : 302 + Location: /programmeurs (adapter l'id)
-# @no-redirect
-POST http://localhost:8080/programmeurs/11
-Content-Type: application/x-www-form-urlencoded
+{
+  "equipementId": 11,
+  "description": "Écran figé sur la page d'accueil"
+}
 
-_method=DELETE
+### F4 : Description manquante : 400
+POST {{hote}}/incident
+Authorization: {{agent}}
+Content-Type: application/json
 
-### 5.12.2 -- Modification : POST + _method=PUT (adapter l'id), réponse attendue : 302 + Location: /programmeurs
-# @no-redirect
-POST http://localhost:8080/programmeurs/1
-Content-Type: application/x-www-form-urlencoded
+{
+  "equipementId": 11,
+  "description": ""
+}
 
-_method=PUT&nom=Lovelace&prenom=Ada&adresse=1+rue+Analytical+Engine&langageExpertise=Fortran&livrePrefere=Notes&salaire=33333.99
+### F6 : Modifier la description, 200
+PATCH {{hote}}/incident/1/description
+Authorization: {{agent}}
+Content-Type: application/json
 
-### 5.10.3 -- Suppression d'un id inexistant : 404
-POST http://localhost:8080/programmeurs/9999
-Content-Type: application/x-www-form-urlencoded
+{
+  "description": "Porte bloquée au rez-de-chaussée, cabine à l'arrêt"
+}
 
-_method=DELETE
+### Lot alpha (piste 3) : Prestataires recommandés pour l'incident 1, 200
+GET {{hote}}/incident/1/recommandation
+Authorization: {{responsable}}
+
+### F7 : Affecter (ou réaffecter) un prestataire, 200
+PATCH {{hote}}/incident/1/affectation
+Authorization: {{responsable}}
+Content-Type: application/json
+
+{
+  "prestataireId": 1
+}
+
+### F8 : Déclarer l'incident résolu, 200
+PATCH {{hote}}/incident/1/resolution
+Authorization: {{responsable}}
+
+### RG5 : Un incident résolu ne peut plus être modifié : 409
+PATCH {{hote}}/incident/1/resolution
+Authorization: {{responsable}}
+
+### F10 : Évaluer le prestataire de l'incident résolu, 201
+POST {{hote}}/incident/1/evaluation
+Authorization: {{responsable}}
+Content-Type: application/json
+
+{
+  "note": 4,
+  "commentaire": "Intervention rapide"
+}
+
+### RG8 : Note hors de l'intervalle 1 à 5 : 400
+POST {{hote}}/incident/12/evaluation
+Authorization: {{responsable}}
+Content-Type: application/json
+
+{
+  "note": 6
+}
+
+### Lot alpha (piste 5) : Journal métier de l'incident 1, 200
+GET {{hote}}/incident/1/journal
+Authorization: {{responsable}}
+
+### F9 : Historique des incidents résolus, du plus récent au plus ancien, 200
+GET {{hote}}/incident/historique
+Authorization: {{agent}}
+
+### F2 : Équipements d'une station, 200
+GET {{hote}}/station/1/equipements
+Authorization: {{agent}}
+
+### F3 : Fiche d'un équipement et ses incidents, 200
+GET {{hote}}/equipements/1
+Authorization: {{agent}}
+
+### F10 : Prestataires et leur note moyenne, 200
+GET {{hote}}/prestataire
+Authorization: {{agent}}
+
+### Sans authentification : 401
+GET {{hote}}/incident

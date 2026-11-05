@@ -42,6 +42,8 @@ class DroitsParProfilTest {
     @MockitoBean
     private CalculateurNiveauAttention calculateurNiveauAttention;
     @MockitoBean
+    private DetecteurEquipementFragile detecteurEquipementFragile;
+    @MockitoBean
     private Clock clock;
 
     @Autowired

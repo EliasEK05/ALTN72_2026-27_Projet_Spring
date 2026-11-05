@@ -25,6 +25,7 @@ public record IncidentDto(
         Integer note,
         String commentaireEvaluation,
         Duration dureeOuverture,
-        NiveauAttention niveauAttention
+        NiveauAttention niveauAttention,
+        boolean equipementFragile
     ) implements Serializable {
 }

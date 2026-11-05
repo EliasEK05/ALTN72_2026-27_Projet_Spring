@@ -5,11 +5,14 @@
 <header th:replace="~{fragments/entete :: entete}"></header>
 <main class="container">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 th:text="|${fiche.reference} - ${fiche.libelle}|"></h1>
+        <h1>
+            <span th:text="|${fiche.reference} - ${fiche.libelle}|"></span>
+            <th:block th:if="${fiche.fragile}"><span th:replace="~{fragments/incident :: fragile}"></span></th:block>
+        </h1>
         <a th:href="@{/incidents/nouveau(equipementId=${fiche.id})}" class="btn btn-danger">Déclarer un incident</a>
     </div>
 
-    <!--/* F3 -- Informations de l'équipement et liste de ses incidents, en cours et passés */-->
+
     <table class="table w-auto mb-4">
         <tr><th>Station</th><td th:text="${fiche.stationNom}"></td></tr>
         <tr><th>Type</th><td th:text="${fiche.type}"></td></tr>

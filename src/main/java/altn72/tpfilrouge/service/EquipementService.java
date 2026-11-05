@@ -20,13 +20,16 @@ public class EquipementService {
     private final StationRepository stationRepository;
     private final IncidentService incidentService;
     private final EquipementMapper equipementMapper;
+    private final DetecteurEquipementFragile detecteurEquipementFragile;
 
     public EquipementService(EquipementRepository equipementRepository, StationRepository stationRepository,
-                             IncidentService incidentService, EquipementMapper equipementMapper) {
+                             IncidentService incidentService, EquipementMapper equipementMapper,
+                             DetecteurEquipementFragile detecteurEquipementFragile) {
         this.equipementRepository = equipementRepository;
         this.stationRepository = stationRepository;
         this.incidentService = incidentService;
         this.equipementMapper = equipementMapper;
+        this.detecteurEquipementFragile = detecteurEquipementFragile;
     }
 
     // Récupère les équipements d'une station donnée
@@ -45,13 +48,13 @@ public class EquipementService {
     }
 
     // Récupère la fiche d'un équipement avec ses incidents
-    @Transactional
+    @Transactional(readOnly = true)
     public FicheEquipement getFicheEquipement(Long equipementId) {
         Equipement equipement = equipementRepository.findById(equipementId)
                 .orElseThrow(() -> new EquipementIntrouvableException(equipementId));
 
         List<IncidentDto> incidents = incidentService.getIncidentsByEquipement(equipementId);
 
-        return equipementMapper.toFicheEquipement(equipement, incidents);
+        return equipementMapper.toFicheEquipement(equipement, detecteurEquipementFragile.estFragile(equipementId), incidents);
     }
 }
