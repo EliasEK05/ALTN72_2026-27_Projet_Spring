@@ -64,7 +64,7 @@ public class IncidentService {
                 .toList();
     }
 
-    // F3 Incidents d'un équipement, du plus récent au plus ancien
+    // Incidents d'un équipement, du plus récent au plus ancien
     @Transactional
     public List<IncidentDto> getIncidentsByEquipement(Long equipementId) {
         return incidentRepository.findByEquipementIdOrderByDateOuvertureDesc(equipementId)

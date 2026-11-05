@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @ControllerAdvice
 public class UtilisateurConnecteAdvice {
 
-    // F1 Utilisateur affiché dans l'en-tête de chaque page
+    // Utilisateur affiché dans l'en-tête de chaque page
     @ModelAttribute("utilisateurConnecte")
     public UtilisateurConnecte utilisateurConnecte(@AuthenticationPrincipal UtilisateurConnecte utilisateurConnecte) {
         return utilisateurConnecte;

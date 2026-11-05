@@ -14,7 +14,7 @@ public class EquipementControleur {
         this.equipementService = equipementService;
     }
 
-    // F3 Consulter la fiche d'un équipement
+    // Consulter la fiche d'un équipement
     @GetMapping("/equipements/{id}")
     public FicheEquipement getFicheEquipement(@PathVariable Long id) {
         return equipementService.getFicheEquipement(id);

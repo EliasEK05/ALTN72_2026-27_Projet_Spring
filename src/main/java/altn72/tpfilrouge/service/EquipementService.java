@@ -29,7 +29,7 @@ public class EquipementService {
         this.equipementMapper = equipementMapper;
     }
 
-    // F2 Récupère les équipements d'une station donnée
+    // Récupère les équipements d'une station donnée
     public List<EquipementDto> getEquipementsDeLaStation(Long stationId) {
         if (!stationRepository.existsById(stationId)) {
             throw new StationIntrouvableException(stationId);
@@ -44,7 +44,7 @@ public class EquipementService {
         return equipementRepository.findTypesEquipement();
     }
 
-    // F3 Récupère la fiche d'un équipement avec ses incidents
+    // Récupère la fiche d'un équipement avec ses incidents
     @Transactional
     public FicheEquipement getFicheEquipement(Long equipementId) {
         Equipement equipement = equipementRepository.findById(equipementId)

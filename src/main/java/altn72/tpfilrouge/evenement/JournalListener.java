@@ -24,7 +24,7 @@ public class JournalListener {
         this.clock = clock;
     }
 
-    // Écouteur synchrone : l'événement est enregistré dans la même transaction que l'action journalisée (RG10)
+    // Enregistrement de l'événement dans la même transaction que l'action journalisée
     @EventListener
     public void journaliser(IncidentModifieEvenement evenement) {
         EvenementIncident evenementIncident = new EvenementIncident();
