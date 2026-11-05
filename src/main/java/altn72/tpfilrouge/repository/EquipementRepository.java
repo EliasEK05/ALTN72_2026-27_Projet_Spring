@@ -7,10 +7,10 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface EquipementRepository extends JpaRepository<Equipement, Long> {
-    // F2 Requête pour récupérer les équipements d'une station donnée
+    // Requête pour récupérer les équipements d'une station donnée
     List<Equipement> findByStationId(Long stationId);
 
-    // F11 Types d'équipement proposés dans les filtres du tableau de bord
+    // Types d'équipement proposés dans les filtres du tableau de bord
     @Query("select distinct e.type from Equipement e order by e.type")
     List<String> findTypesEquipement();
 }

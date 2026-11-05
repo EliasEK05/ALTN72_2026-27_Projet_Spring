@@ -20,7 +20,6 @@ import java.time.Clock;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-// RG11 Les vrais services sont chargés par Spring pour que les restrictions par profil soient appliquées
 @SpringJUnitConfig
 class DroitsParProfilTest {
 
