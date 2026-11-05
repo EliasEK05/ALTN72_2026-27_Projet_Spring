@@ -19,7 +19,7 @@ public class JournalService {
         this.incidentRepository = incidentRepository;
     }
 
-    // FTN5 Historique horodaté des changements apportés à un incident
+    // Historique horodaté des changements apportés à un incident
     public List<EvenementIncidentDto> getJournal(Long incidentId) {
         if (!incidentRepository.existsById(incidentId)) {
             throw new IncidentIntrouvableException(incidentId);

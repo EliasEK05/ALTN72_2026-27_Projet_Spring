@@ -14,7 +14,7 @@ public class ConnexionService implements UserDetailsService {
         this.utilisateurRepository = utilisateurRepository;
     }
 
-    // F1 Retrouve l'utilisateur qui se connecte à partir de son login
+    // Retrouve l'utilisateur qui se connecte à partir de son login
     @Override
     public UserDetails loadUserByUsername(String login) {
         return utilisateurRepository.findByLogin(login)

@@ -21,7 +21,7 @@ public class TableauDeBordService {
         this.incidentRepository = incidentRepository;
     }
 
-    // F11 Incidents actifs filtrés et indicateurs sur l'ensemble du réseau
+    // Incidents actifs filtrés et indicateurs sur l'ensemble du réseau
     @ReserveAuResponsable
     public TableauDeBordDto getTableauDeBord(Long stationId, String typeEquipement, NiveauAttention niveauAttention) {
         List<IncidentDto> incidents = incidentService.getIncidentsActifs(stationId, typeEquipement)

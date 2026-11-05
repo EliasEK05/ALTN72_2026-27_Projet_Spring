@@ -7,7 +7,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-// RG11 Action réservée au responsable d'exploitation, vérifiée côté serveur à chaque appel du service
+// Action réservée au responsable d'exploitation, vérifiée côté serveur à chaque appel du service
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @PreAuthorize("hasRole('RESPONSABLE_EXPLOITATION')")

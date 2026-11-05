@@ -28,7 +28,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-// Sans cette exclusion, Spring Boot ajoute un second UserDetailsService à côté du mock et la connexion échoue
 @WebMvcTest(controllers = {ConnexionControleur.class, AccueilControleur.class}, excludeAutoConfiguration = UserDetailsServiceAutoConfiguration.class)
 @Import(SecuriteConfig.class)
 class ConnexionControleurTest {
