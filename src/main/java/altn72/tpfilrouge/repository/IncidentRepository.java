@@ -6,16 +6,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.List;
 
 public interface IncidentRepository extends JpaRepository<Incident, Long> {
-    // F3 Incidents d'un équipement, du plus récent au plus ancien
+    // Incidents d'un équipement, du plus récent au plus ancien
     List<Incident> findByEquipementIdOrderByDateOuvertureDesc(Long equipementId);
     List<Incident> findAllByOrderByDateOuvertureDesc();
 
     List<Incident> findByStatutOrderByDateResolutionDesc(StatutIncident statut);
 
-    // F11 Incidents actifs, filtrables par station et par type d'équipement
+    // Incidents actifs, filtrables par station et par type d'équipement
     @Query("""
             select i from Incident i
             join fetch i.equipement e
@@ -30,7 +31,7 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
     List<Incident> findIncidentsActifs(@Param("stationId") Long stationId,
                                        @Param("typeEquipement") String typeEquipement);
 
-    // F11 Nombre d'incidents actifs par station
+    // Nombre d'incidents actifs par station
     @Query(value = """
             SELECT s.nom AS stationNom, COUNT(i.id) AS nombreIncidents
             FROM incident i
@@ -46,4 +47,6 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
     long countByPrestataireIdAndStatut(Long prestataireId, StatutIncident statut);
 
     long countByPrestataireIdAndEquipementTypeAndStatut(Long prestataireId, String typeEquipement, StatutIncident statut);
+
+    long countByEquipementIdAndDateOuvertureGreaterThanEqual(Long equipementId, Instant debut);
 }
