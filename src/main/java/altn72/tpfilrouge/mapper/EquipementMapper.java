@@ -19,7 +19,7 @@ public class EquipementMapper {
                 equipement.getEtatFonctionnement());
     }
 
-    public FicheEquipement toFicheEquipement(Equipement equipement, List<IncidentDto> incidents) {
+    public FicheEquipement toFicheEquipement(Equipement equipement, boolean fragile, List<IncidentDto> incidents) {
         return new FicheEquipement(
                 equipement.getId(),
                 equipement.getReference(),
@@ -27,6 +27,7 @@ public class EquipementMapper {
                 equipement.getType(),
                 equipement.getEtatFonctionnement(),
                 equipement.getStation().getNom(),
+                fragile,
                 incidents);
     }
 }
