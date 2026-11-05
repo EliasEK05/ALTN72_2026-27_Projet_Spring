@@ -33,12 +33,14 @@ class EquipementServiceTest {
     private StationRepository stationRepository;
     @Mock
     private IncidentService incidentService;
+    @Mock
+    private DetecteurEquipementFragile detecteurEquipementFragile;
 
     private EquipementService equipementService;
 
     @BeforeEach
     void initialiser() {
-        equipementService = new EquipementService(equipementRepository, stationRepository, incidentService, new EquipementMapper());
+        equipementService = new EquipementService(equipementRepository, stationRepository, incidentService, new EquipementMapper(), detecteurEquipementFragile);
     }
 
     @Test
@@ -72,6 +74,14 @@ class EquipementServiceTest {
         assertThat(fiche.reference()).isEqualTo("ASC-001");
         assertThat(fiche.stationNom()).isEqualTo("Châtelet");
         assertThat(fiche.incidents()).containsExactly(incident);
+    }
+
+    @Test
+    void laFicheIndiqueSiLEquipementEstFragile() {
+        when(equipementRepository.findById(10L)).thenReturn(Optional.of(equipement(10L)));
+        when(detecteurEquipementFragile.estFragile(10L)).thenReturn(true);
+
+        assertThat(equipementService.getFicheEquipement(10L).fragile()).isTrue();
     }
 
     @Test

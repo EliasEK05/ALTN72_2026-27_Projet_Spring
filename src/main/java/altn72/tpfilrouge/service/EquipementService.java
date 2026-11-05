@@ -20,16 +20,19 @@ public class EquipementService {
     private final StationRepository stationRepository;
     private final IncidentService incidentService;
     private final EquipementMapper equipementMapper;
+    private final DetecteurEquipementFragile detecteurEquipementFragile;
 
     public EquipementService(EquipementRepository equipementRepository, StationRepository stationRepository,
-                             IncidentService incidentService, EquipementMapper equipementMapper) {
+                             IncidentService incidentService, EquipementMapper equipementMapper,
+                             DetecteurEquipementFragile detecteurEquipementFragile) {
         this.equipementRepository = equipementRepository;
         this.stationRepository = stationRepository;
         this.incidentService = incidentService;
         this.equipementMapper = equipementMapper;
+        this.detecteurEquipementFragile = detecteurEquipementFragile;
     }
 
-    // F2 Récupère les équipements d'une station donnée
+    // Récupère les équipements d'une station donnée
     public List<EquipementDto> getEquipementsDeLaStation(Long stationId) {
         if (!stationRepository.existsById(stationId)) {
             throw new StationIntrouvableException(stationId);
@@ -44,14 +47,14 @@ public class EquipementService {
         return equipementRepository.findTypesEquipement();
     }
 
-    // F3 Récupère la fiche d'un équipement avec ses incidents
-    @Transactional
+    // Récupère la fiche d'un équipement avec ses incidents
+    @Transactional(readOnly = true)
     public FicheEquipement getFicheEquipement(Long equipementId) {
         Equipement equipement = equipementRepository.findById(equipementId)
                 .orElseThrow(() -> new EquipementIntrouvableException(equipementId));
 
         List<IncidentDto> incidents = incidentService.getIncidentsByEquipement(equipementId);
 
-        return equipementMapper.toFicheEquipement(equipement, incidents);
+        return equipementMapper.toFicheEquipement(equipement, detecteurEquipementFragile.estFragile(equipementId), incidents);
     }
 }
