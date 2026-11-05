@@ -32,7 +32,7 @@ public class GestionnaireExceptions {
         return new ErreurDto(HttpStatus.CONFLICT.value(), exception.getMessage());
     }
 
-    // RG11 Action interdite pour le profil de l'utilisateur connecté
+    // Action interdite pour le profil connecté
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ErreurDto gererAccesRefuse() {

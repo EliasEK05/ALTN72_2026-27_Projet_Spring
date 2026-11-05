@@ -25,7 +25,7 @@ public class StationControleur {
         return stationService.getStations();
     }
 
-    // F2 Liste des équipements de la station {id}
+    // Liste des équipements de la station {id}
     @GetMapping("/station/{id}/equipements")
     public List<EquipementDto> getEquipementsDeLaStation(@PathVariable Long id) {
         return equipementService.getEquipementsDeLaStation(id);
