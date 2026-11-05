@@ -74,7 +74,7 @@ class TableauDeBordServiceTest {
 
     private IncidentDto incident(Long id, NiveauAttention niveauAttention) {
         return new IncidentDto(id, "Panne", null, StatutIncident.NON_AFFECTE, null, 1L, "ASC-001",
-                "Ascenseur", "Châtelet", null, null, null, null, null, niveauAttention);
+                "Ascenseur", "Châtelet", null, null, null, null, null, niveauAttention, false);
     }
 
     private IncidentsActifsParStation ligne(String stationNom, Long nombreIncidents) {
