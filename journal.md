@@ -1,4 +1,4 @@
-    # Journal — Supervision des équipements (ALTN72, 2026-27)
+# Journal — Supervision des équipements (ALTN72, 2026-27)
 
 **Groupe :** Elias EL KHILALI, Ashley HARINAMBININA
 
@@ -48,7 +48,7 @@
    exception/    GestionnaireExceptions : exception → code HTTP (API)
                  GestionnaireExceptionsPages : exception → page lisible
                          ▼
-   service/      règles métier (RG1 à RG11), @Transactional,
+   service/      règles métier (RG1 à RG11, EF1 à EF6), @Transactional,
                  droits par profil (@ReserveAuResponsable)
       │                  │
       │                  ---> evenement/  IncidentModifieEvenement
@@ -83,6 +83,7 @@
   - Lot alpha : recommandation de prestataires et journal métier.
   - Pages web : un filtre laissé sur "Tous" ne filtre rien ; un agent obtient une page d'accès refusé sur le tableau de bord ; une action refusée ramène sur l'incident avec le message.
   - Documentation Swagger générée et protégée comme le reste de l'API.
+  - Équipement fragile : les 7 cas limites de l'énoncé, plus un incident ouvert il y a 30 jours pile. Le badge et le message de déclaration n'apparaissent que pour un équipement fragile.
 - **Non couvert :**
 
 ## CHOIX TECHNIQUES
@@ -133,6 +134,7 @@
   - `CalculateurNiveauAttention` ne fait que calculer la durée et le niveau d'attention. Les seuils de 48 h et 72 h n'existent qu'à cet endroit.
   - Les mappers convertissent entités et DTO ; les contrôleurs ne font que recevoir et répondre.
   - Le journal métier est écrit par `JournalListener`, pas par `IncidentService`.
+  - `DetecteurEquipementFragile` dit seulement si un équipement est fragile. Le seuil de 3 incidents et la fenêtre de 30 jours ne sont écrits que là.
   - Effet : chaque règle se modifie et se teste à un seul endroit.
 - **O — Ouvert/fermé (partiellement) :** `IncidentService` publie un événement à chaque changement. Ajouter une nouvelle réaction (par exemple une notification) se fait avec un nouvel écouteur, sans modifier le service.
 - **L — Substitution de Liskov (peu pertinent) :** il y a très peu d'héritage. Le seul cas, les sous-classes de `RessourceIntrouvableException`, est traité de la même façon partout (404).
@@ -160,6 +162,7 @@
 
 - Le niveau d'attention est calculé à chaque lecture à partir de l'heure courante. Il n'est jamais stocké en base.
 - L'heure vient d'un bean `Clock` (`HorlogeConfig`), ce qui permet de la figer dans les tests.
+- Même chose pour l'équipement fragile : il est recalculé à chaque lecture avec la même horloge, rien n'est stocké.
 - Hibernate enregistre les dates (`Instant`) en UTC. Le script utilise donc `UTC_TIMESTAMP()` et non `NOW()`, qui donne l'heure locale du serveur MySQL. L'affichage, lui, se fait à l'heure de Paris (fuseau `Europe/Paris` fixé dans le `Dockerfile` pour le serveur déployé).
 
 ### Déploiement
@@ -196,7 +199,7 @@
 ## BILAN
 
 - **Contribution de chacun :**
-  - Elias : F1, F2, F3, les pages Thymeleaf, la documentation Swagger, le script `db/create.sql` et les deux fonctionnalités du lot alpha.
+  - Elias : F1, F2, F3, les pages Thymeleaf, la documentation Swagger, le script `db/create.sql`, les deux fonctionnalités du lot alpha et l'évolution de la séance finale (équipement fragile).
   - Ashley : F4 à F11 côté serveur (cycle de vie des incidents, évaluation, tableau de bord), les exceptions personnalisées et les tests des incidents.
 - **Plus grande difficulté :** la gestion des exceptions, et la mise en place des tests unitaires car nous ne sommes pas habitués
 - **Fonctionnalités non réalisées et pourquoi :** toutes les fonctionnalités ont été réalisées
@@ -207,35 +210,35 @@
 
 ## Évolution séance finale
 
-### Description : équipement fragile
+### Équipement fragile
 
-- **Besoin :** repérer un équipement qui tombe souvent en panne. Il est fragile s'il a eu au moins 3 incidents ouverts durant les 30 derniers jours, quel que soit leur statut.
-- **Où dans le code :**
-  - `service/DetecteurEquipementFragile` : la règle (EF1 à EF5). Le seuil (3) et la fenêtre (30 jours) sont deux constantes de cette classe, et nulle part ailleurs.
-  - `repository/IncidentRepository` : `countByEquipementIdAndDateOuvertureGreaterThanEqual`, qui compte les incidents d'un équipement ouverts depuis une date.
-  - `service/EquipementService` et `service/IncidentService` : la fiche (`FicheEquipement.fragile`) et chaque incident (`IncidentDto.equipementFragile`) portent le résultat.
-  - `templates/fragments/incident.html` : le fragment `fragile`, badge "Équipement fragile", réutilisé par `fiche-equipement.html` et `supervision.html`.
-  - `controleur/page/IncidentPageControleur` : le message de confirmation d'une déclaration contient « fragile » si l'équipement l'est devenu.
+- **Besoin :** repérer les équipements qui tombent souvent en panne. Un équipement est fragile s'il a eu au moins 3 incidents ouverts dans les 30 derniers jours, résolus ou non.
+- **Fichiers principaux :**
+  - `service/DetecteurEquipementFragile` : la règle. Le seuil (3) et la fenêtre (30 jours) sont deux constantes de cette classe.
+  - `repository/IncidentRepository` : `countByEquipementIdAndDateOuvertureGreaterThanEqual` compte les incidents d'un équipement ouverts depuis une date.
+  - `service/EquipementService` et `service/IncidentService` : ils remplissent `FicheEquipement.fragile` et `IncidentDto.equipementFragile`.
+  - `templates/fragments/incident.html` : le badge "Équipement fragile", utilisé dans `fiche-equipement.html` et `supervision.html`.
+  - `controleur/page/IncidentPageControleur` : après une déclaration, le message de confirmation signale si l'équipement est devenu fragile.
 
 ### Choix de conception
 
-- **Un composant à part, comme `CalculateurNiveauAttention` :** la règle vit dans la couche service (EF6). Les contrôleurs et les vues ne font que lire un booléen déjà calculé.
-- **Rien en base (EF4) :** le caractère fragile est recalculé à chaque consultation, à partir de l'horloge injectée (`Clock`). La fenêtre glisse donc toute seule.
-- **Le comptage est fait par la base :** une requête `count` avec `date_ouverture >= maintenant - 30 jours`, sans filtre sur le statut (EF2). La borne est incluse : un incident ouvert il y a 30 jours pile compte encore (EF1).
-- **Même information pour l'API :** `IncidentDto` porte `equipementFragile`, donc l'API REST et les pages l'exposent sans code supplémentaire.
-- **Raccourci pris :** le calcul est fait incident par incident (une requête `count` par ligne du tableau de bord et de la fiche). C'est simple et suffisant pour le volume de la démonstration, mais pas optimisé : une seule requête groupée par équipement serait préférable sur un gros réseau.
+- On a suivi le même principe que `CalculateurNiveauAttention` : une classe à part dans la couche service. Les contrôleurs et les vues lisent juste un booléen.
+- Rien n'est enregistré en base. La fragilité est recalculée à chaque affichage avec l'horloge injectée, donc la fenêtre de 30 jours avance toute seule.
+- C'est la base qui compte : `date_ouverture >= maintenant - 30 jours`, sans regarder le statut. Un incident ouvert il y a 30 jours pile compte encore.
+- Comme `IncidentDto` contient `equipementFragile`, l'information sort aussi dans l'API sans rien ajouter.
+- **Raccourci :** on fait une requête `count` par incident affiché (tableau de bord, fiche). Ça suffit pour nos données, mais sur un gros réseau il faudrait une seule requête groupée par équipement.
 
-### Tests ajoutés et limites connues
+### Tests ajoutés et limites
 
 - **Tests ajoutés :**
-  - `DetecteurEquipementFragileTest` (`@DataJpaTest`, base H2, horloge figée) : les 7 cas limites de l'énoncé, plus le cas « 30 jours pile » :
-    - 2 incidents dans la fenêtre : non fragile ; 3 incidents : fragile ; 3 dont 1 résolu : fragile ;
-    - un incident ouvert il y a 30 jours et 1 minute n'est pas compté ; il y a 29 jours 23 h 59, il l'est ; il y a 30 jours pile, il l'est aussi ;
-    - 2 incidents récents et 5 vieux de 45 jours : non fragile ;
-    - l'équipement voisin, avec un seul incident, reste non fragile.
-  - `EquipementServiceTest` et `IncidentServiceTest` : la fiche et l'incident reprennent le résultat du détecteur.
-  - `PagesWebTest` : le badge apparaît sur la fiche et sur le tableau de bord si et seulement si l'équipement est fragile ; le message de déclaration contient "fragile" seulement dans ce cas.
-- **Limites connues :**
-  - Une requête `count` par incident affiché
-  - Le seuil et la fenêtre sont des constantes : les changer demande une nouvelle version de l'application, pas un simple paramétrage.
-  - Les données de `db/create.sql` ne contiennent aucun équipement fragile. Pour la démonstration, `ASC-03` (Ascenseur Parking) a 2 incidents récents et un troisième ouvert il y a 30 jours pile au moment du script : il sort de la fenêtre juste après (cas limite 4). Déclarer un incident sur `ASC-03` ou `ASC-02` le rend fragile : le message de confirmation le signale et le badge apparaît.
+  - `DetecteurEquipementFragileTest` (`@DataJpaTest` sur H2, horloge figée) : les 7 cas limites de l'énoncé, plus le cas "30 jours pile".
+    - 2 incidents : pas fragile. 3 incidents : fragile. 3 incidents dont 1 résolu : fragile.
+    - Un incident ouvert il y a 30 jours et 1 minute ne compte pas. À 29 jours 23 h 59 ou à 30 jours pile, il compte.
+    - 2 incidents récents et 5 vieux de 45 jours : pas fragile.
+    - L'équipement d'à côté, avec un seul incident, n'est pas fragile.
+  - `EquipementServiceTest` et `IncidentServiceTest` : la fiche et l'incident reprennent bien le résultat du détecteur.
+  - `PagesWebTest` : le badge s'affiche sur la fiche et sur le tableau de bord uniquement pour un équipement fragile, et le message de déclaration contient "fragile" uniquement dans ce cas.
+- **Limites :**
+  - Une requête `count` par incident affiché.
+  - Pour changer le seuil ou la fenêtre, il faut modifier le code et redéployer.
+  - Aucun équipement n'est fragile dans `db/create.sql`. Pour la démo, il suffit de déclarer un incident sur `ASC-03` (Ascenseur Parking) ou `ASC-02` : il passe à 3 incidents, le message le signale et le badge apparaît.
