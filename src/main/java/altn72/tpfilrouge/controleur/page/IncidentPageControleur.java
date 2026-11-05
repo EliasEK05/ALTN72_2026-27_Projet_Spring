@@ -67,7 +67,9 @@ public class IncidentPageControleur {
             return "declaration";
         }
         IncidentDto incident = incidentService.creerIncident(requete);
-        redirection.addFlashAttribute("succes", "L'incident a été déclaré.");
+        redirection.addFlashAttribute("succes", incident.equipementFragile()
+                ? "L'incident a été déclaré. Attention : cet équipement est désormais fragile."
+                : "L'incident a été déclaré.");
         return "redirect:/incidents/" + incident.id();
     }
 

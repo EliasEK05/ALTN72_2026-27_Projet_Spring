@@ -1,6 +1,7 @@
 package altn72.tpfilrouge.controleur.page;
 
 import altn72.tpfilrouge.config.SecuriteConfig;
+import altn72.tpfilrouge.dto.DeclarerIncidentRequestDto;
 import altn72.tpfilrouge.dto.FicheEquipement;
 import altn72.tpfilrouge.dto.IncidentDto;
 import altn72.tpfilrouge.dto.IndicateursDto;
@@ -33,6 +34,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -47,7 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-@WebMvcTest({SupervisionPageControleur.class, IncidentPageControleur.class})
+@WebMvcTest({SupervisionPageControleur.class, IncidentPageControleur.class, ReseauPageControleur.class})
 @Import(SecuriteConfig.class)
 class PagesWebTest {
 
@@ -136,7 +138,7 @@ class PagesWebTest {
     @Test
     void uneDeclarationSansDescriptionReafficheLeFormulaireAvecUnMessage() throws Exception {
         when(equipementService.getFicheEquipement(10L)).thenReturn(
-                new FicheEquipement(10L, "ASC-01", "Ascenseur quai A", "ASCENSEUR", "EN_PANNE", "Gare Centrale", List.of()));
+                new FicheEquipement(10L, "ASC-01", "Ascenseur quai A", "ASCENSEUR", "EN_PANNE", "Gare Centrale", false, List.of()));
 
         mockMvc.perform(post("/incidents").param("equipementId", "10").param("description", " ")
                         .with(csrf())
@@ -147,10 +149,80 @@ class PagesWebTest {
         verify(incidentService, never()).creerIncident(any());
     }
 
+    @Test
+    void laFicheDUnEquipementFragileAfficheLeBadge() throws Exception {
+        when(equipementService.getFicheEquipement(10L)).thenReturn(fiche(true));
+
+        mockMvc.perform(get("/reseau/equipements/10").with(user(utilisateur(ProfilUtilisateur.AGENT_TERRAIN))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Équipement fragile")));
+    }
+
+    @Test
+    void laFicheDUnEquipementNonFragileNAffichePasLeBadge() throws Exception {
+        when(equipementService.getFicheEquipement(10L)).thenReturn(fiche(false));
+
+        mockMvc.perform(get("/reseau/equipements/10").with(user(utilisateur(ProfilUtilisateur.AGENT_TERRAIN))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("Équipement fragile"))));
+    }
+
+    @Test
+    void leTableauDeBordAfficheLeBadgeSurLesIncidentsDUnEquipementFragile() throws Exception {
+        when(tableauDeBordService.getTableauDeBord(null, null, null)).thenReturn(new TableauDeBordDto(
+                List.of(incident(StatutIncident.NON_AFFECTE, NiveauAttention.ROUGE, true)),
+                new IndicateursDto(1, 1, 0, 0, 0, List.of())));
+
+        mockMvc.perform(get("/supervision").with(user(utilisateur(ProfilUtilisateur.RESPONSABLE_EXPLOITATION))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Équipement fragile")));
+    }
+
+    @Test
+    void leTableauDeBordNAffichePasLeBadgeSiLEquipementNEstPasFragile() throws Exception {
+        when(tableauDeBordService.getTableauDeBord(null, null, null)).thenReturn(new TableauDeBordDto(
+                List.of(incident(StatutIncident.NON_AFFECTE, NiveauAttention.ROUGE)),
+                new IndicateursDto(1, 1, 0, 0, 0, List.of())));
+
+        mockMvc.perform(get("/supervision").with(user(utilisateur(ProfilUtilisateur.RESPONSABLE_EXPLOITATION))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("Équipement fragile"))));
+    }
+
+    @Test
+    void laConfirmationDeDeclarationSignaleUnEquipementDevenuFragile() throws Exception {
+        when(incidentService.creerIncident(new DeclarerIncidentRequestDto(10L, "Ascenseur bloqué")))
+                .thenReturn(incident(StatutIncident.NON_AFFECTE, NiveauAttention.VERT, true));
+
+        mockMvc.perform(post("/incidents").param("equipementId", "10").param("description", "Ascenseur bloqué").with(csrf())
+                        .with(user(utilisateur(ProfilUtilisateur.AGENT_TERRAIN))))
+                .andExpect(redirectedUrl("/incidents/1"))
+                .andExpect(flash().attribute("succes", containsString("fragile")));
+    }
+
+    @Test
+    void laConfirmationDeDeclarationNeParlePasDeFragiliteSinon() throws Exception {
+        when(incidentService.creerIncident(new DeclarerIncidentRequestDto(10L, "Ascenseur bloqué")))
+                .thenReturn(incident(StatutIncident.NON_AFFECTE, NiveauAttention.VERT));
+
+        mockMvc.perform(post("/incidents").param("equipementId", "10").param("description", "Ascenseur bloqué").with(csrf())
+                        .with(user(utilisateur(ProfilUtilisateur.AGENT_TERRAIN))))
+                .andExpect(redirectedUrl("/incidents/1"))
+                .andExpect(flash().attribute("succes", not(containsString("fragile"))));
+    }
+
+    private FicheEquipement fiche(boolean fragile) {
+        return new FicheEquipement(10L, "ASC-01", "Ascenseur quai A", "ASCENSEUR", "EN_PANNE", "Gare Centrale", fragile, List.of());
+    }
+
     private IncidentDto incident(StatutIncident statut, NiveauAttention niveauAttention) {
+        return incident(statut, niveauAttention, false);
+    }
+
+    private IncidentDto incident(StatutIncident statut, NiveauAttention niveauAttention, boolean equipementFragile) {
         return new IncidentDto(1L, "Ascenseur bloqué", Instant.parse("2026-11-01T12:00:00Z"), statut, null,
                 10L, "ASC-01", "Ascenseur quai A", "Gare Centrale", null, null, null, null,
-                Duration.ofHours(80), niveauAttention);
+                Duration.ofHours(80), niveauAttention, equipementFragile);
     }
 
     private UtilisateurConnecte utilisateur(ProfilUtilisateur profil) {

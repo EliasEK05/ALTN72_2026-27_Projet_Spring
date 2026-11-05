@@ -45,6 +45,8 @@ class IncidentServiceTest {
     private PrestataireRepository prestataireRepository;
     @Mock
     private ApplicationEventPublisher evenementPublisher;
+    @Mock
+    private DetecteurEquipementFragile detecteurEquipementFragile;
 
     private IncidentService incidentService;
 
@@ -57,6 +59,7 @@ class IncidentServiceTest {
                 prestataireRepository,
                 new IncidentMapper(),
                 new CalculateurNiveauAttention(clock),
+                detecteurEquipementFragile,
                 clock,
                 evenementPublisher);
     }
@@ -74,6 +77,18 @@ class IncidentServiceTest {
         assertThat(resultat.dateOuverture()).isEqualTo(MAINTENANT);
         assertThat(resultat.equipementId()).isEqualTo(10L);
         assertThat(resultat.niveauAttention()).isEqualTo(NiveauAttention.VERT);
+    }
+
+    @Test
+    void unIncidentIndiqueSiSonEquipementEstFragile() {
+        Equipement equipement = incidentNonAffecte(1L).getEquipement();
+        when(equipementRepository.findById(10L)).thenReturn(Optional.of(equipement));
+        when(incidentRepository.save(any(Incident.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(detecteurEquipementFragile.estFragile(10L)).thenReturn(true);
+
+        IncidentDto resultat = incidentService.creerIncident(new DeclarerIncidentRequestDto(10L, "Portique bloqué"));
+
+        assertThat(resultat.equipementFragile()).isTrue();
     }
 
     @Test
