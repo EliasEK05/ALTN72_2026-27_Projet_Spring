@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class DocumentationApiConfig {
 
-    // F12 Documentation de l'API REST, consultable sur /swagger-ui.html
+    //Documentation de l'API REST
     @Bean
     public OpenAPI documentationApi() {
         return new OpenAPI().info(new Info()

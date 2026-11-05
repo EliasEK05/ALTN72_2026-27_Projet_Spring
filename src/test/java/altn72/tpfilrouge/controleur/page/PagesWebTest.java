@@ -37,6 +37,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -120,9 +121,16 @@ class PagesWebTest {
     void uneActionRefuseeRameneSurLaPageDeLIncidentAvecLeMessage() throws Exception {
         when(incidentService.resoudre(1L)).thenThrow(new TransitionIncidentInterditeException("L'incident n°1 est résolu et ne peut plus être modifié"));
 
-        mockMvc.perform(post("/incidents/1/resolution").with(user(utilisateur(ProfilUtilisateur.RESPONSABLE_EXPLOITATION))))
+        mockMvc.perform(post("/incidents/1/resolution").with(csrf()).with(user(utilisateur(ProfilUtilisateur.RESPONSABLE_EXPLOITATION))))
                 .andExpect(redirectedUrl("/incidents/1"))
                 .andExpect(flash().attribute("erreur", "L'incident n°1 est résolu et ne peut plus être modifié"));
+    }
+
+    @Test
+    void unFormulaireEnvoyeSansJetonCsrfEstRefuse() throws Exception {
+        mockMvc.perform(post("/incidents/1/resolution").with(user(utilisateur(ProfilUtilisateur.RESPONSABLE_EXPLOITATION))))
+                .andExpect(status().isForbidden());
+        verify(incidentService, never()).resoudre(any());
     }
 
     @Test
@@ -131,6 +139,7 @@ class PagesWebTest {
                 new FicheEquipement(10L, "ASC-01", "Ascenseur quai A", "ASCENSEUR", "EN_PANNE", "Gare Centrale", List.of()));
 
         mockMvc.perform(post("/incidents").param("equipementId", "10").param("description", " ")
+                        .with(csrf())
                         .with(user(utilisateur(ProfilUtilisateur.AGENT_TERRAIN))))
                 .andExpect(status().isOk())
                 .andExpect(view().name("declaration"))
