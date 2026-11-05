@@ -74,7 +74,10 @@
                     <td><span th:replace="~{fragments/incident :: niveau(${incident.niveauAttention})}"></span></td>
                     <td><a th:href="@{/incidents/{id}(id=${incident.id})}" th:text="${incident.description}"></a></td>
                     <td th:text="${incident.stationNom}"></td>
-                    <td th:text="|${incident.equipementReference} - ${incident.equipementLibelle}|"></td>
+                    <td>
+                        <span th:text="|${incident.equipementReference} - ${incident.equipementLibelle}|"></span>
+                        <th:block th:if="${incident.equipementFragile}"><span th:replace="~{fragments/incident :: fragile}"></span></th:block>
+                    </td>
                     <td th:text="|${incident.dureeOuverture.toHours()} h|"></td>
                     <td th:text="${incident.prestataireNom} ?: '—'"></td>
                 </tr>
