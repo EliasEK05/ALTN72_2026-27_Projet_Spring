@@ -28,15 +28,17 @@ public class IncidentService {
     private final PrestataireRepository prestataireRepository;
     private final IncidentMapper incidentMapper;
     private final CalculateurNiveauAttention calculateurNiveauAttention;
+    private final DetecteurEquipementFragile detecteurEquipementFragile;
     private final Clock clock;
     private final ApplicationEventPublisher evenementPublisher;
 
-    public IncidentService(IncidentRepository incidentRepository, EquipementRepository equipementRepository, PrestataireRepository prestataireRepository, IncidentMapper incidentMapper, CalculateurNiveauAttention calculateurNiveauAttention, Clock clock, ApplicationEventPublisher evenementPublisher) {
+    public IncidentService(IncidentRepository incidentRepository, EquipementRepository equipementRepository, PrestataireRepository prestataireRepository, IncidentMapper incidentMapper, CalculateurNiveauAttention calculateurNiveauAttention, DetecteurEquipementFragile detecteurEquipementFragile, Clock clock, ApplicationEventPublisher evenementPublisher) {
         this.incidentRepository = incidentRepository;
         this.equipementRepository = equipementRepository;
         this.prestataireRepository = prestataireRepository;
         this.incidentMapper = incidentMapper;
         this.calculateurNiveauAttention = calculateurNiveauAttention;
+        this.detecteurEquipementFragile = detecteurEquipementFragile;
         this.clock = clock;
         this.evenementPublisher = evenementPublisher;
     }
@@ -51,12 +53,12 @@ public class IncidentService {
         return versDto(incident);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public IncidentDto getIncidentById(Long id) {
         return versDto(trouverIncident(id));
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<IncidentDto> getAllIncidents() {
         return incidentRepository.findAllByOrderByDateOuvertureDesc()
                 .stream()
@@ -64,8 +66,8 @@ public class IncidentService {
                 .toList();
     }
 
-    // F3 Incidents d'un équipement, du plus récent au plus ancien
-    @Transactional
+    // Incidents d'un équipement, du plus récent au plus ancien
+    @Transactional(readOnly = true)
     public List<IncidentDto> getIncidentsByEquipement(Long equipementId) {
         return incidentRepository.findByEquipementIdOrderByDateOuvertureDesc(equipementId)
                 .stream()
@@ -73,7 +75,7 @@ public class IncidentService {
                 .toList();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<IncidentDto> getIncidentsActifs(Long stationId, String typeEquipement) {
         return incidentRepository.findIncidentsActifs(stationId, typeEquipement)
                 .stream()
@@ -81,7 +83,7 @@ public class IncidentService {
                 .toList();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<IncidentDto> getHistoriqueIncidentsResolus() {
         return incidentRepository.findByStatutOrderByDateResolutionDesc(StatutIncident.RESOLU)
                 .stream()
@@ -156,6 +158,7 @@ public class IncidentService {
         return incidentMapper.toIncidentDto(
                 incident,
                 calculateurNiveauAttention.calculerDureeOuverture(incident),
-                calculateurNiveauAttention.calculerNiveauAttention(incident));
+                calculateurNiveauAttention.calculerNiveauAttention(incident),
+                detecteurEquipementFragile.estFragile(incident.getEquipement().getId()));
     }
 }
